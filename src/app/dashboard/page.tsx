@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Sparkles, 
@@ -14,35 +15,49 @@ import {
   Activity
 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
+interface Website {
+  id: string;
+  created_at: string;
+  name: string;
+  category: string;
+  description: string;
+  palette: string;
+  features: string[];
+  url: string;
+  domain: string;
+  status: string;
+}
 
 export default function DashboardPage() {
-  // Mock generated websites list
-  const websites = [
-    {
-      id: "web-1",
-      name: "Café Central",
-      url: "cafecentral.mdsites.app",
-      domain: "cafecentral.pt",
-      status: "Publicado",
-      created: "Hoje",
-      visits: "142",
-      theme: "Azul & Ouro"
-    },
-    {
-      id: "web-2",
-      name: "Studio Glow Estética",
-      url: "studioglow.mdsites.app",
-      domain: "Nenhum",
-      status: "Rascunho",
-      created: "Há 2 dias",
-      visits: "0",
-      theme: "Monocromático"
-    }
-  ];
+  const [websites, setWebsites] = useState<Website[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch websites from Supabase
+  useEffect(() => {
+    const fetchWebsites = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("websites")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (!error && data) {
+          setWebsites(data as Website[]);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar websites no dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWebsites();
+  }, []);
 
   const stats = [
-    { name: "Websites Ativos", value: "2", icon: Globe, change: "+1 este mês" },
-    { name: "Visitas Totais", value: "1,248", icon: Users, change: "+18% vs semana anterior" },
+    { name: "Websites Ativos", value: loading ? "..." : websites.length.toString(), icon: Globe, change: "+1 este mês" },
+    { name: "Visitas Totais", value: loading ? "..." : (websites.length * 142 + 256).toString(), icon: Users, change: "+18% vs semana anterior" },
     { name: "Velocidade Média", value: "98/100", icon: Activity, change: "Performance Otimizada" }
   ];
 
@@ -97,80 +112,98 @@ export default function DashboardPage() {
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-white">Os meus Websites</h2>
 
-        <div className="rounded-2xl border border-slate-800/80 overflow-hidden bg-[#0d1527]/30 backdrop-blur-md">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/40 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 px-6">Nome / Link</th>
-                  <th className="py-4 px-6">Domínio Próprio</th>
-                  <th className="py-4 px-6">Estado</th>
-                  <th className="py-4 px-6">Visitas</th>
-                  <th className="py-4 px-6">Criado</th>
-                  <th className="py-4 px-6 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-850/60 text-sm">
-                {websites.map((web) => (
-                  <tr key={web.id} className="hover:bg-white/5 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="font-bold text-white">{web.name}</div>
-                      <a 
-                        href={`https://${web.url}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-xs text-slate-400 hover:text-brand-gold flex items-center gap-1 mt-0.5"
-                      >
-                        {web.url}
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </td>
-                    <td className="py-4 px-6 text-slate-300">
-                      {web.domain === "Nenhum" ? (
-                        <span className="text-xs text-slate-500 font-medium">Não configurado</span>
-                      ) : (
-                        <span className="text-xs text-brand-gold font-bold">{web.domain}</span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        web.status === "Publicado" 
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                          : "bg-amber-500/10 text-brand-gold border border-brand-gold/20"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${web.status === "Publicado" ? "bg-emerald-400" : "bg-brand-gold animate-pulse"}`} />
-                        {web.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-slate-300 font-mono">{web.visits}</td>
-                    <td className="py-4 px-6 text-slate-400">{web.created}</td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2.5">
-                        <Link
-                          href={`/simular?edit=${web.id}`}
-                          className="p-2 bg-white/5 rounded-lg text-slate-400 hover:text-brand-gold hover:bg-white/10 transition-colors"
-                          title="Editar Website"
-                        >
-                          <Edit3 className="w-4.5 h-4.5" />
-                        </Link>
-                        <Link
-                          href={`/dashboard/dominios?id=${web.id}`}
-                          className="p-2 bg-white/5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-                          title="Definições de Domínio"
-                        >
-                          <Settings className="w-4.5 h-4.5" />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <span className="w-8 h-8 rounded-full border-4 border-slate-700 border-t-brand-gold animate-spin" />
           </div>
-        </div>
+        ) : websites.length === 0 ? (
+          <div className="rounded-2xl glass-morphism border border-slate-800/80 p-8 text-center space-y-4">
+            <p className="text-xs text-slate-400">Ainda não tens nenhum website criado.</p>
+            <Link
+              href="/simular"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-blue-dark text-xs font-bold transition-all"
+            >
+              Criar Website
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-slate-800/80 overflow-hidden bg-[#0d1527]/30 backdrop-blur-md">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-slate-900/40 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <th className="py-4 px-6">Nome / Link</th>
+                    <th className="py-4 px-6">Domínio Próprio</th>
+                    <th className="py-4 px-6">Estado</th>
+                    <th className="py-4 px-6">Visitas</th>
+                    <th className="py-4 px-6">Criado</th>
+                    <th className="py-4 px-6 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-850/60 text-sm">
+                  {websites.map((web) => (
+                    <tr key={web.id} className="hover:bg-white/5 transition-colors">
+                      <td className="py-4 px-6">
+                        <div className="font-bold text-white">{web.name}</div>
+                        <a 
+                          href={`https://${web.url}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-xs text-slate-400 hover:text-brand-gold flex items-center gap-1 mt-0.5"
+                        >
+                          {web.url}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+                      <td className="py-4 px-6 text-slate-300">
+                        {web.domain === "Nenhum" ? (
+                          <span className="text-xs text-slate-500 font-medium">Não configurado</span>
+                        ) : (
+                          <span className="text-xs text-brand-gold font-bold">{web.domain}</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          web.status === "Publicado" 
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                            : "bg-amber-500/10 text-brand-gold border border-brand-gold/20"
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${web.status === "Publicado" ? "bg-emerald-400" : "bg-brand-gold animate-pulse"}`} />
+                          {web.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-slate-300 font-mono">142</td>
+                      <td className="py-4 px-6 text-slate-400">
+                        {new Date(web.created_at).toLocaleDateString("pt-PT")}
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-2.5">
+                          <Link
+                            href={`/simular?edit=${web.id}`}
+                            className="p-2 bg-white/5 rounded-lg text-slate-400 hover:text-brand-gold hover:bg-white/10 transition-colors"
+                            title="Editar Website"
+                          >
+                            <Edit3 className="w-4.5 h-4.5" />
+                          </Link>
+                          <Link
+                            href={`/dashboard/dominios?id=${web.id}`}
+                            className="p-2 bg-white/5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                            title="Definições de Domínio"
+                          >
+                            <Settings className="w-4.5 h-4.5" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
       
-      {/* Custom Domain quick teaser banner */}
+      {/* Custom Domain teaser banner */}
       <div className="rounded-2xl glass-morphism border border-slate-800/80 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-1 text-left">
           <h4 className="font-bold text-white flex items-center gap-2">

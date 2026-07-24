@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { 
   Sparkles, 
   Send,
@@ -62,8 +63,37 @@ export default function RedesignedSimulator() {
   const [palette, setPalette] = useState("blue-gold");
   const [features, setFeatures] = useState<string[]>(["servicos", "contactos"]);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load website data if editing
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const editParam = params.get("edit");
+      if (editParam) {
+        setEditId(editParam);
+        const fetchWebsite = async () => {
+          const { data, error } = await supabase
+            .from("websites")
+            .select("*")
+            .eq("id", editParam)
+            .single();
+          if (data && !error) {
+            setBrandName(data.name);
+            setCategory(data.category);
+            setDescription(data.description || "");
+            setPalette(data.palette);
+            setFeatures(data.features);
+            setIsCompleted(true);
+            setStages(prev => prev.map(s => ({ ...s, status: "completed" })));
+          }
+        };
+        fetchWebsite();
+      }
+    }
+  }, []);
 
   // Initial welcome message from AI
   useEffect(() => {
@@ -220,9 +250,37 @@ export default function RedesignedSimulator() {
 
         // Show loading compilation
         setAiTyping(true);
-        setTimeout(() => {
+        setTimeout(async () => {
           setAiTyping(false);
           setIsCompleted(true);
+          
+          const slug = brandName.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const randomHash = Math.random().toString(36).substring(2, 6);
+          const websiteUrl = editId 
+            ? `${slug}.mdsites.app`
+            : `${slug || "site"}-${randomHash}.mdsites.app`;
+            
+          const payload = {
+            name: brandName,
+            category,
+            description,
+            palette,
+            features,
+            url: websiteUrl,
+            status: "Publicado"
+          };
+
+          if (editId) {
+            await supabase
+              .from("websites")
+              .update(payload)
+              .eq("id", editId);
+          } else {
+            await supabase
+              .from("websites")
+              .insert([payload]);
+          }
+
           canvasConfetti({
             particleCount: 150,
             spread: 90,
