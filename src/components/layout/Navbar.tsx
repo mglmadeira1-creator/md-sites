@@ -45,13 +45,13 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center justify-start w-64 h-16 relative overflow-hidden">
                 <Image
                   src="/logonovo.png"
                   alt="MD Sites Logo"
-                  width={1232}
-                  height={352}
-                  className="h-56 w-auto object-contain"
+                  width={480}
+                  height={137}
+                  className="object-contain scale-[2.1] transform origin-left"
                   priority
                 />
               </Link>
