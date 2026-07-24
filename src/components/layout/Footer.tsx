@@ -81,7 +81,7 @@ export default function Footer() {
 
         {/* Divider */}
         <div className="border-t border-slate-800/60 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500" suppressHydrationWarning>
             &copy; {new Date().getFullYear()} MD Sites. Todos os direitos reservados.
           </p>
           <div className="flex gap-4 text-xs text-slate-500">

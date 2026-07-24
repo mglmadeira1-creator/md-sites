@@ -761,7 +761,7 @@ export default function RedesignedSimulator() {
                 )}
 
                 {/* Footer */}
-                <div className="p-8 border-t border-white/5 text-center text-[10px] text-slate-500 select-none">
+                <div className="p-8 border-t border-white/5 text-center text-[10px] text-slate-500 select-none" suppressHydrationWarning>
                   &copy; {new Date().getFullYear()} {brandName}. Desenvolvido com IA da MD Sites.
                 </div>
 
