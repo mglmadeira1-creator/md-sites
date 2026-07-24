@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <>
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {showLoader && (
           <IntroLoader
             onComplete={() => {
