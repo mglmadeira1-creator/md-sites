@@ -16,7 +16,7 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
   
   const fullCommand = "❯ md-sites deploy --ai";
 
-  // Typewriter effect (Faster - 400ms total)
+  // Fast typewriter effect for the command line (~300ms)
   useEffect(() => {
     let currentIdx = 0;
     const interval = setInterval(() => {
@@ -25,81 +25,81 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
         currentIdx++;
       } else {
         clearInterval(interval);
-        setStep(1); // Start sequence
+        setStep(1); // Start compile steps
       }
-    }, 20);
+    }, 15);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Non-linear progression steps mimicking a real AI compile
+  // Non-linear progress progression (mimicking AI task compiling)
   useEffect(() => {
     if (step === 0) return;
 
     if (step === 1) {
-      // 0% to 18%
+      // 0% -> 18%
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev < 18) return prev + 2;
           clearInterval(interval);
-          setTimeout(() => setStep(2), 300);
+          setTimeout(() => setStep(2), 250);
           return prev;
         });
-      }, 15);
+      }, 12);
     } 
     else if (step === 2) {
-      // 18% to 42%
+      // 18% -> 42%
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev < 42) return prev + 3;
           clearInterval(interval);
-          setTimeout(() => setStep(3), 350);
+          setTimeout(() => setStep(3), 300);
           return prev;
         });
-      }, 15);
+      }, 12);
     }
     else if (step === 3) {
-      // 42% to 73%
+      // 42% -> 73%
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev < 73) return prev + 4;
           clearInterval(interval);
-          setTimeout(() => setStep(4), 350);
+          setTimeout(() => setStep(4), 300);
           return prev;
         });
-      }, 15);
+      }, 12);
     }
     else if (step === 4) {
-      // 73% to 91%
+      // 73% -> 91%
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev < 91) return prev + 3;
           clearInterval(interval);
-          setTimeout(() => setStep(5), 300);
+          setTimeout(() => setStep(5), 250);
           return prev;
         });
-      }, 15);
+      }, 12);
     }
     else if (step === 5) {
-      // 91% to 100%
+      // 91% -> 100%
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev < 100) return prev + 3;
           clearInterval(interval);
-          setTimeout(() => setStep(6), 300);
+          setTimeout(() => setStep(6), 250);
           return prev;
         });
-      }, 15);
+      }, 12);
     }
     else if (step === 6) {
-      // Show "Website Ready." wait 300ms, then show Launching...
+      // Wait 300ms, then trigger launching transition
       const timer = setTimeout(() => {
         setLaunching(true);
-        // Cinematic morph trigger
+        // Call onComplete which initiates layoutId fly to homepage
         setTimeout(() => {
           onComplete();
-        }, 500);
-      }, 400);
+        }, 300);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [step]);
@@ -115,7 +115,7 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
     <motion.div
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
+      transition={{ duration: 0.6, ease: "easeInOut" }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#030712] overflow-hidden"
     >
       {/* Background Image Base */}
@@ -125,12 +125,18 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/95 via-[#030712]/90 to-[#030712] -z-10" />
 
-      {/* Center glowing halo */}
+      {/* Center glowing light halo */}
       <div className="absolute w-[450px] h-[450px] bg-brand-blue/15 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* Shared Layout Terminal Container */}
+      {/* morphing layoutId terminal wrapper */}
       <motion.div
         layoutId="hero-terminal"
+        transition={{
+          type: "spring",
+          stiffness: 85,
+          damping: 17,
+          mass: 1.1
+        }}
         className="w-full max-w-xl mx-4 rounded-2xl p-[2px] relative"
         style={{
           background: "linear-gradient(225deg, #D4AF37 0%, #D4AF37 40%, #3b82f6 60%, #3b82f6 100%)",
@@ -160,7 +166,7 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
           </div>
 
           {/* Terminal Screen area */}
-          <div className="p-6 font-mono text-xs sm:text-sm text-[#10b981] space-y-2.5 min-h-[340px] flex flex-col justify-start relative">
+          <div className="p-6 font-mono text-xs sm:text-sm text-[#10b981] space-y-2 min-h-[340px] flex flex-col justify-start relative">
             
             {/* Typed command line */}
             <div className="text-slate-100 font-bold flex items-center">
@@ -184,7 +190,7 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
             )}
 
             {/* Checklist elements mapping user requested list */}
-            <div className="space-y-1.5 pt-1 text-slate-300">
+            <div className="space-y-1 pt-1 text-slate-350 select-none">
               {step >= 1 && (
                 <motion.div initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2">
                   <span>✓</span>
@@ -246,20 +252,20 @@ export default function IntroLoader({ onComplete }: IntroLoaderProps) {
               <motion.div 
                 initial={{ opacity: 0, y: 3 }} 
                 animate={{ opacity: 1, y: 0 }} 
-                className="pt-2 text-emerald-400 font-bold flex items-center gap-2"
+                className="pt-2 text-emerald-400 font-bold flex items-center gap-2 select-none"
               >
                 <span>✓ Website Ready.</span>
               </motion.div>
             )}
 
-            {/* Blinking cursor at the end while compiler runs */}
-            {step < 6 && step > 0 && (
+            {/* Blinking green cursor */}
+            {step > 0 && (
               <div className="flex items-center mt-1">
-                <span className="w-2.5 h-4 bg-[#10b981] animate-pulse" />
+                <span className="w-2 h-4 bg-[#10b981] animate-pulse" />
               </div>
             )}
 
-            {/* Launching overlay cinematic text */}
+            {/* Launching overlay text */}
             {launching && (
               <motion.div 
                 initial={{ opacity: 0 }}

@@ -122,9 +122,12 @@ export default function Hero() {
             {/* Neon Border Glow wrapper container */}
             <motion.div
               layoutId="hero-terminal"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{
+                type: "spring",
+                stiffness: 85,
+                damping: 17,
+                mass: 1.1
+              }}
               className="w-full rounded-2xl p-[2px] relative"
               style={{
                 background: "linear-gradient(225deg, #D4AF37 0%, #D4AF37 40%, #3b82f6 60%, #3b82f6 100%)",
