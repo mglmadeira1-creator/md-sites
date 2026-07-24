@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Sparkles
+  Sparkles,
+  Rocket
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -32,6 +33,7 @@ export default function DashboardLayout({
     { name: "Painel Geral", href: "/dashboard", icon: LayoutDashboard },
     { name: "Os meus Websites", href: "/dashboard/websites", icon: Globe },
     { name: "AI Studio", href: "/dashboard/ai-studio", icon: Sparkles },
+    { name: "Marketplace", href: "/dashboard/marketplace", icon: Rocket },
     { name: "Criar Website", href: "/simular", icon: PlusCircle },
     { name: "Domínios", href: "/dashboard/dominios", icon: Globe },
     { name: "Faturação", href: "/dashboard/faturacao", icon: CreditCard },

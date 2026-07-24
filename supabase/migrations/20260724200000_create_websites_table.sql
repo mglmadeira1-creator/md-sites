@@ -1,6 +1,7 @@
 -- Limpar tabelas existentes (Ordem reversa de dependências para evitar erros de chave estrangeira)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+DROP TABLE IF EXISTS public.installed_apps CASCADE;
 DROP TABLE IF EXISTS public.settings CASCADE;
 DROP TABLE IF EXISTS public.assets CASCADE;
 DROP TABLE IF EXISTS public.domains CASCADE;
@@ -182,3 +183,32 @@ CREATE POLICY "Permitir inserção de settings" ON public.settings
 
 CREATE POLICY "Permitir atualização de settings" ON public.settings
     FOR UPDATE USING (true);
+
+
+-- 7. Tabela de Aplicações Instaladas no Website (Marketplace)
+CREATE TABLE public.installed_apps (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at timestamptz DEFAULT now() NOT NULL,
+    website_id uuid REFERENCES public.websites(id) ON DELETE CASCADE NOT NULL,
+    app_id text NOT NULL,
+    config jsonb DEFAULT '{}'::jsonb NOT NULL,
+    is_enabled boolean DEFAULT true NOT NULL,
+    UNIQUE (website_id, app_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_installed_apps_website ON public.installed_apps(website_id);
+
+-- RLS nas Apps Instaladas
+ALTER TABLE public.installed_apps ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir leitura pública de apps instaladas" ON public.installed_apps
+    FOR SELECT USING (true);
+
+CREATE POLICY "Permitir inserção de apps instaladas" ON public.installed_apps
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Permitir atualização de apps instaladas" ON public.installed_apps
+    FOR UPDATE USING (true);
+
+CREATE POLICY "Permitir eliminação de apps instaladas" ON public.installed_apps
+    FOR DELETE USING (true);
