@@ -51,6 +51,14 @@ export default function ConversationalCopilotBuilder() {
   const [palette, setPalette] = useState("blue-gold");
   const [features, setFeatures] = useState<string[]>(["servicos", "contactos"]);
   
+  // Design System States (Intelligent Design)
+  const [heroVariant, setHeroVariant] = useState("modern"); // minimalist, modern, premium, corporate, creative, restaurant
+  const [headerVariant, setHeaderVariant] = useState("sticky"); // transparent, classic, sticky, centralized
+  const [cardVariant, setCardVariant] = useState("glass"); // minimalist, elevated, glass, premium
+  const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
+  const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
+  const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
+
   const [isCompleted, setIsCompleted] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
 
@@ -61,13 +69,13 @@ export default function ConversationalCopilotBuilder() {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nDescreve simplesmente o website que pretendes criar. Podes escrever um setor, as cores, funcionalidades preferidas, ou apenas uma frase simples. Eu trato de todo o resto!",
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu designer de marca e programador pessoal. Descreve o website que imaginas (ex: 'Quero um site estilo Apple', 'Cria um site minimalista preto e dourado para advocacia' ou 'Cria um site divertido e colorido para crianças').\n\nEu crio um Design System único com layouts e componentes adaptados!",
         timestamp: new Date(),
         suggestions: [
-          "Quero um website para um restaurante italiano moderno.",
-          "Cria um website para um consultor de tecnologia.",
-          "Quero um site para uma clínica com marcações e WhatsApp.",
-          "Cria um portfólio de fotografia minimalista."
+          "Cria um website estilo Apple.",
+          "Cria um site de carros elétricos estilo Tesla.",
+          "Quero um site inspirado no Spotify para um estúdio de som.",
+          "Faz um website infantil colorido para ATL."
         ]
       }
     ]);
@@ -90,19 +98,32 @@ export default function ConversationalCopilotBuilder() {
             setBrandName(data.name);
             setCategory(data.category);
             setDescription(data.description || "");
-            setPalette(data.palette);
             setFeatures(data.features);
             setIsCompleted(true);
+
+            // Deserialize combined layout variables from the palette column
+            const parts = data.palette.split(":");
+            if (parts.length > 1) {
+              setPalette(parts[0]);
+              setHeroVariant(parts[1] || "modern");
+              setCardVariant(parts[2] || "glass");
+              setBorderRadius(parts[3] || "xl");
+              setFontFamily(parts[4] || "sans");
+              if (parts[5]) setShadowStyle(parts[5]);
+            } else {
+              setPalette(data.palette);
+            }
+
             setMessages(prev => [
               ...prev,
               {
                 sender: "ai",
-                text: `Carreguei com sucesso as definições de **${data.name}**. Que modificações ou secções gostarias de aplicar hoje?`,
+                text: `Carreguei com sucesso a identidade de **${data.name}**. Que modificações de design ou novas secções queres fazer agora?`,
                 timestamp: new Date(),
                 suggestions: [
-                  "Mudar o tema para verde",
-                  "Adicionar secção de FAQ",
-                  "Instalar integração WhatsApp"
+                  "Mudar para estilo minimalista",
+                  "Mudar para cores da Tesla",
+                  "Adicionar secção de FAQ"
                 ]
               }
             ]);
@@ -118,91 +139,133 @@ export default function ConversationalCopilotBuilder() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, aiTyping]);
 
-  // Natural Language AI Interpreter
+  // Intelligent Design Prompt Parser
   const interpretUserPrompt = (prompt: string) => {
     const p = prompt.toLowerCase();
     
-    // 1. Detect Category / Sector
     let detectedCat = category;
     let detectedDesc = description;
     let detectedName = brandName;
     let detectedPalette = palette;
     let detectedFeatures = [...features];
 
+    // Design System Default fallbacks
+    let dHero = heroVariant;
+    let dHeader = headerVariant;
+    let dCard = cardVariant;
+    let dBorder = borderRadius;
+    let dFont = fontFamily;
+    let dShadow = shadowStyle;
+
+    // 1. STYLE INTERPRETATIONS (Apple, Tesla, Spotify, Infantil, Luxo/Premium, etc.)
+    if (p.includes("apple") || p.includes("minimalista")) {
+      detectedPalette = "mono-light";
+      dHero = "minimalist";
+      dHeader = "transparent";
+      dCard = "minimalist";
+      dBorder = "xl";
+      dFont = "sans";
+      dShadow = "none";
+      detectedDesc = "Desenho minimalista focado na simplicidade, elegância e espaço em branco.";
+    } 
+    else if (p.includes("tesla") || p.includes("futurista")) {
+      detectedPalette = "indigo-purple";
+      dHero = "premium";
+      dHeader = "sticky";
+      dCard = "premium";
+      dBorder = "md";
+      dFont = "display";
+      dShadow = "glow";
+      detectedDesc = "Estilo futurista e imersivo com imagens em escala total e tipografia impactante.";
+    }
+    else if (p.includes("spotify") || p.includes("divertido") && p.includes("escuro")) {
+      detectedPalette = "indigo-purple";
+      dHero = "creative";
+      dHeader = "sticky";
+      dCard = "glass";
+      dBorder = "full";
+      dFont = "mono";
+      dShadow = "glow";
+      detectedDesc = "Inspirado em gradientes, cores vibrantes no escuro e cartões destacados.";
+    }
+    else if (p.includes("infantil") || p.includes("crianças") || p.includes("colorido")) {
+      detectedPalette = "emerald-dark"; // Custom color handling below
+      dHero = "creative";
+      dHeader = "classic";
+      dCard = "elevated";
+      dBorder = "full";
+      dFont = "display";
+      dShadow = "lg";
+      detectedDesc = "Ambiente alegre, acolhedor e visualmente dinâmico desenhado para crianças.";
+    }
+    else if (p.includes("luxo") || p.includes("premium") || p.includes("elegante")) {
+      detectedPalette = "blue-gold";
+      dHero = "premium";
+      dHeader = "centralized";
+      dCard = "premium";
+      dBorder = "none";
+      dFont = "serif";
+      dShadow = "lg";
+      detectedDesc = "Estética corporativa refinada, tons sóbrios e detalhes dourados de alta autoridade.";
+    }
+
+    // 2. DETECT CATEGORY / SECTOR
     if (p.includes("restaurante") || p.includes("pizzaria") || p.includes("italiano") || p.includes("comida") || p.includes("cafe")) {
       detectedCat = "Restaurante & Gastronomia";
-      detectedDesc = "Sabores autênticos cozinhados com dedicação e ingredientes frescos da época.";
+      detectedDesc = "Uma viagem de sabores concebida com produtos frescos da época.";
+      dHero = "restaurant";
+      dCard = "elevated";
       if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "Bella Itália";
+        detectedName = "Forno d'Ouro";
       }
       if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
     } 
-    else if (p.includes("tecnologia") || p.includes("saas") || p.includes("consultor") || p.includes("finanças") || p.includes("advogado")) {
+    else if (p.includes("tecnologia") || p.includes("saas") || p.includes("consultor") || p.includes("software")) {
       detectedCat = "Tecnologia & SaaS";
-      detectedDesc = "Soluções de engenharia digital inovadoras e automação de processos inteligentes.";
+      detectedDesc = "Engenharia de software avançada para otimizar os fluxos da sua empresa.";
       if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "TechFlow Soluções";
+        detectedName = "Cyber Core Systems";
       }
-      detectedPalette = "indigo-purple";
     }
-    else if (p.includes("clinica") || p.includes("saude") || p.includes("estetica") || p.includes("spa") || p.includes("bem-estar")) {
+    else if (p.includes("clinica") || p.includes("saude") || p.includes("estetica") || p.includes("spa")) {
       detectedCat = "Saúde & Estética";
-      detectedDesc = "Tratamentos dermatológicos personalizados com os melhores padrões de bem-estar.";
+      detectedDesc = "Cuidado personalizado de saúde e bem-estar dermatológico.";
       if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "Glow Estética & Spa";
+        detectedName = "DermaGlow Clinic";
       }
-      detectedPalette = "emerald-dark";
-    }
-    else if (p.includes("fotografo") || p.includes("fotografia") || p.includes("portfolio") || p.includes("artista")) {
-      detectedCat = "Fotografia & Design";
-      detectedDesc = "Captura de momentos espontâneos e projetos artísticos minimalistas de autor.";
-      if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "Luz & Arte Fotografia";
-      }
-      detectedPalette = "mono-light";
-      if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
     }
 
-    // 2. Extract potential brand name in quotes or capitalizing after prefix
+    // 3. BRAND NAME EXTRACTOR
     const nameMatch = prompt.match(/chamad[oa]\s+["']?([^"']+)["']?/i) || prompt.match(/nome\s+["']?([^"']+)["']?/i);
     if (nameMatch && nameMatch[1]) {
       detectedName = nameMatch[1].trim();
     }
 
-    // 3. Detect Palettes
-    if (p.includes("azul") || p.includes("indigo") || p.includes("purple") || p.includes("roxo")) {
-      detectedPalette = "indigo-purple";
-    } else if (p.includes("verde") || p.includes("esmeralda") || p.includes("emerald")) {
-      detectedPalette = "emerald-dark";
-    } else if (p.includes("branco") || p.includes("claro") || p.includes("minimalista") || p.includes("cinza")) {
-      detectedPalette = "mono-light";
-    } else if (p.includes("dourado") || p.includes("ouro") || p.includes("gold") || p.includes("preto")) {
-      detectedPalette = "blue-gold";
+    // 4. REACTIVE DESIGN ADJUSTMENTS
+    if (p.includes("muda") || p.includes("troca") || p.includes("mete") || p.includes("altera")) {
+      if (p.includes("azul") || p.includes("roxo")) detectedPalette = "indigo-purple";
+      if (p.includes("verde") || p.includes("esmeralda")) detectedPalette = "emerald-dark";
+      if (p.includes("dourado") || p.includes("preto")) detectedPalette = "blue-gold";
+      if (p.includes("branco") || p.includes("claro")) detectedPalette = "mono-light";
+
+      if (p.includes("serif") || p.includes("serifa") || p.includes("classica")) dFont = "serif";
+      if (p.includes("mono") || p.includes("codigo")) dFont = "mono";
+      if (p.includes("arredondado") || p.includes("redondo")) dBorder = "full";
+      if (p.includes("quadrado") || p.includes("reto")) dBorder = "none";
     }
 
-    // 4. Detect Features
+    // 5. WIDGET FEATURES
     if (p.includes("whatsapp")) {
       if (!detectedFeatures.includes("whatsapp")) detectedFeatures.push("whatsapp");
     }
-    if (p.includes("galeria") || p.includes("portfolio")) {
+    if (p.includes("galeria")) {
       if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
     }
-    if (p.includes("faq") || p.includes("perguntas")) {
+    if (p.includes("faq")) {
       if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
     }
-    if (p.includes("testemunho") || p.includes("depoimento") || p.includes("clientes")) {
+    if (p.includes("testemunhos") || p.includes("depoimentos")) {
       if (!detectedFeatures.includes("depoimentos")) detectedFeatures.push("depoimentos");
-    }
-    if (p.includes("contacto") || p.includes("formulario")) {
-      if (!detectedFeatures.includes("contactos")) detectedFeatures.push("contactos");
-    }
-
-    // Remove features
-    if (p.includes("remove") || p.includes("tira") || p.includes("apaga")) {
-      if (p.includes("whatsapp")) detectedFeatures = detectedFeatures.filter(f => f !== "whatsapp");
-      if (p.includes("galeria")) detectedFeatures = detectedFeatures.filter(f => f !== "galeria");
-      if (p.includes("faq")) detectedFeatures = detectedFeatures.filter(f => f !== "faq");
-      if (p.includes("testemunho") || p.includes("depoimentos")) detectedFeatures = detectedFeatures.filter(f => f !== "depoimentos");
     }
 
     return {
@@ -210,7 +273,13 @@ export default function ConversationalCopilotBuilder() {
       category: detectedCat,
       description: detectedDesc,
       palette: detectedPalette,
-      features: detectedFeatures
+      features: detectedFeatures,
+      hero: dHero,
+      header: dHeader,
+      card: dCard,
+      border: dBorder,
+      font: dFont,
+      shadow: dShadow
     };
   };
 
@@ -221,12 +290,11 @@ export default function ConversationalCopilotBuilder() {
     setInputValue("");
     setAiTyping(true);
 
-    // Dynamic compilation thoughts
     const thoughts = [
-      "❯ Analisando linguagem natural...",
-      "❯ Detetando sector e intenção...",
-      "❯ Estruturando componentes do design...",
-      "❯ A atualizar preview em tempo real..."
+      "❯ Analisando briefing criativo...",
+      "❯ Ajustando paleta e tipografia...",
+      "❯ Selecionando componentes no Design System...",
+      "❯ Atualizando grid e layout dinâmico..."
     ];
 
     let tIdx = 0;
@@ -237,89 +305,91 @@ export default function ConversationalCopilotBuilder() {
       } else {
         clearInterval(thoughtInterval);
       }
-    }, 300);
+    }, 250);
 
-    // Process and interpret
     setTimeout(async () => {
-      const updateData = interpretUserPrompt(text);
+      const design = interpretUserPrompt(text);
       
-      setBrandName(updateData.name);
-      setCategory(updateData.category);
-      setDescription(updateData.description);
-      setPalette(updateData.palette);
-      setFeatures(updateData.features);
+      setBrandName(design.name);
+      setCategory(design.category);
+      setDescription(design.description);
+      setPalette(design.palette);
+      setFeatures(design.features);
+
+      // Apply Design system layout options
+      setHeroVariant(design.hero);
+      setHeaderVariant(design.header);
+      setCardVariant(design.card);
+      setBorderRadius(design.border);
+      setFontFamily(design.font);
+      setShadowStyle(design.shadow);
+      
       setIsCompleted(true);
 
-      // Save database row
-      const slug = updateData.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      // Serialize Design System variables in the DB palette string field
+      const serializedPalette = `${design.palette}:${design.hero}:${design.card}:${design.border}:${design.font}:${design.shadow}`;
+
+      const slug = design.name.toLowerCase().replace(/[^a-z0-9]/g, "");
       const randomHash = Math.random().toString(36).substring(2, 6);
       const websiteUrl = editId 
         ? `${slug}.mdsites.app`
         : `${slug || "site"}-${randomHash}.mdsites.app`;
 
       const payload = {
-        name: updateData.name,
-        category: updateData.category,
-        description: updateData.description,
-        palette: updateData.palette,
-        features: updateData.features,
+        name: design.name,
+        category: design.category,
+        description: design.description,
+        palette: serializedPalette,
+        features: design.features,
         url: websiteUrl,
         status: "Publicado"
       };
 
       if (editId) {
-        await supabase
-          .from("websites")
-          .update(payload)
-          .eq("id", editId);
+        await supabase.from("websites").update(payload).eq("id", editId);
       } else {
-        await supabase
-          .from("websites")
-          .insert([payload]);
+        await supabase.from("websites").insert([payload]);
       }
 
-      // Check current active palette color name for recommendations
       const nextSuggestions = [
-        updateData.features.includes("whatsapp") ? "Tirar botão do WhatsApp" : "Instalar WhatsApp no site",
-        !updateData.features.includes("galeria") ? "Adicionar Galeria de Fotos" : "Remover Galeria",
-        updateData.palette === "blue-gold" ? "Mudar tema para Azul Índigo" : "Mudar tema para Dourado Real",
-        "Melhorar o SEO com IA"
+        "Mudar para estilo Apple minimalista",
+        "Mudar para estilo Tesla futurista",
+        "Tornar as bordas quadradas",
+        "Adicionar secção de Testemunhos"
       ];
 
       setMessages(prev => [
         ...prev,
         {
           sender: "ai",
-          text: `Efetuei as alterações com sucesso! Refiz o design e o conteúdo para **${updateData.name}** (${updateData.category}) com o tema **${updateData.palette}**. O que gostaria de alterar a seguir?`,
+          text: `Atualizei o website com sucesso no Design System! Efetuei as seguintes alterações:\n\n✓ Layout de Hero: **${design.hero}**\n✓ Fontes: **${design.font}**\n✓ Cantos e Bordas: **${design.border}**\n✓ Sombra / Brilho: **${design.shadow}**\n✓ Estilo de Cards: **${design.card}**\n✓ Paleta: **${design.palette}**\n\nQue refinamento visual gostaria de fazer a seguir?`,
           timestamp: new Date(),
           suggestions: nextSuggestions
         }
       ]);
 
       canvasConfetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.7 }
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 }
       });
 
       setAiTyping(false);
       setActiveLogs([]);
-    }, 1600);
+    }, 1500);
   };
 
-  // Creative "Surprise Me" action
   const handleSurpriseMe = () => {
     const creativeIdeas = [
-      "Quero um website para uma pizzaria artesanal chamada Forno d'Ouro, com tema vermelho e galeria.",
-      "Cria um website de consultoria tecnológica chamado Matrix Tech com cores azul e roxo.",
-      "Quero um site para uma clínica de estética chamada Skin Care com tons esmeralda e WhatsApp.",
-      "Cria um site elegante para um fotógrafo de casamentos chamado Memórias de Prata."
+      "Cria um website estilo Apple para arquitetura chamado Minimal Space.",
+      "Quero um site estilo Tesla futurista escuro para uma marca de baterias solar.",
+      "Cria um site infantil super colorido chamado Jardim da Fantasia.",
+      "Faz um site estilo Spotify para uma produtora de música chamada Wave Beats."
     ];
     const randomPrompt = creativeIdeas[Math.floor(Math.random() * creativeIdeas.length)];
     handleSend(randomPrompt);
   };
 
-  // Preview styling mapping
   const getThemeClasses = () => {
     switch (palette) {
       case "emerald-dark":
@@ -358,9 +428,46 @@ export default function ConversationalCopilotBuilder() {
     }
   };
 
+  // Resolve visual classes from variables
   const previewTheme = getThemeClasses();
 
-  // Dynamic template elements
+  const getBorderRadiusClass = () => {
+    switch (borderRadius) {
+      case "none": return "rounded-none";
+      case "md": return "rounded-md";
+      case "full": return "rounded-full";
+      case "xl":
+      default:
+        return "rounded-2xl";
+    }
+  };
+
+  const getFontFamilyClass = () => {
+    switch (fontFamily) {
+      case "mono": return "font-mono";
+      case "serif": return "font-serif";
+      case "display": return "font-display";
+      case "sans":
+      default:
+        return "font-sans";
+    }
+  };
+
+  const getShadowClass = () => {
+    switch (shadowStyle) {
+      case "none": return "shadow-none border-white/5";
+      case "sm": return "shadow-sm border-white/5";
+      case "lg": return "shadow-2xl border-white/10";
+      case "glow":
+      default:
+        return palette === "emerald-dark" 
+          ? "shadow-[0_0_22px_rgba(16,185,129,0.15)] border-emerald-500/20"
+          : palette === "indigo-purple"
+          ? "shadow-[0_0_22px_rgba(99,102,241,0.18)] border-indigo-500/20"
+          : "shadow-[0_0_22px_rgba(212,175,55,0.16)] border-brand-gold/20";
+    }
+  };
+
   const getGeneratedContent = () => {
     let heroTitle = `Soluções inteligentes para ${brandName}`;
     let heroSubtitle = description;
@@ -405,7 +512,7 @@ export default function ConversationalCopilotBuilder() {
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
       
-      {/* Background image base at full size */}
+      {/* Background image base */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20 opacity-30 pointer-events-none"
         style={{ backgroundImage: "url('/fundo-paginas.png')" }}
@@ -422,31 +529,26 @@ export default function ConversationalCopilotBuilder() {
             Sair do Copilot
           </button>
           <div className="w-[1px] h-4 bg-slate-800" />
-          <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">AI Copilot v2.0</span>
+          <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">AI Designer Studio v3.0</span>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Image
-            src="/logonovo.png"
-            alt="MD Sites Logo"
-            width={120}
-            height={34}
-            className="h-6 w-auto object-contain"
-          />
-        </div>
+        <Image
+          src="/logonovo.png"
+          alt="MD Sites Logo"
+          width={120}
+          height={34}
+          className="h-6 w-auto object-contain"
+        />
       </header>
 
-      {/* Main Two Column Area */}
+      {/* Two Column Layout */}
       <div className="flex-1 flex overflow-hidden">
         
-        {/* Left Column: AI Copilot Chat */}
+        {/* Left Column: AI Copilot Chat panel */}
         <div className="w-full lg:w-[480px] border-r border-slate-800/80 flex flex-col bg-slate-950/40 backdrop-blur-md relative z-20 flex-shrink-0">
-          
-          {/* Active site header */}
           <div className="p-4 border-b border-slate-800/80 bg-slate-950/50 flex items-center justify-between">
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse" />
-              Sessão AI Copilot Ativa
+              AI Designer de Marca
             </span>
             <button 
               onClick={handleSurpriseMe}
@@ -456,7 +558,7 @@ export default function ConversationalCopilotBuilder() {
             </button>
           </div>
 
-          {/* Messages Log */}
+          {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((msg, index) => (
               <div key={index} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
@@ -467,7 +569,6 @@ export default function ConversationalCopilotBuilder() {
                 }`}>
                   <p className="whitespace-pre-line">{msg.text}</p>
                   
-                  {/* Suggestions bubbles inside message card */}
                   {msg.suggestions && msg.suggestions.length > 0 && (
                     <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-850">
                       {msg.suggestions.map((sug, sIdx) => (
@@ -485,13 +586,12 @@ export default function ConversationalCopilotBuilder() {
               </div>
             ))}
 
-            {/* AI thinking state log */}
             {aiTyping && (
               <div className="flex flex-col items-start space-y-2">
                 <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-350 space-y-2.5 rounded-tl-none w-[80%]">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping" />
-                    <span className="font-bold text-white">Copilot está a trabalhar...</span>
+                    <span className="font-bold text-white">O Copilot está a desenhar...</span>
                   </div>
                   {activeLogs.length > 0 && (
                     <div className="space-y-1 font-mono text-[10px] text-[#10b981] border-t border-slate-850 pt-2">
@@ -518,25 +618,24 @@ export default function ConversationalCopilotBuilder() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ex: 'Muda a paleta para verde e adiciona WhatsApp'"
+                placeholder="Ex: 'Quero um site estilo Apple minimalista'"
                 className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
               />
               <button
                 type="submit"
                 disabled={aiTyping || !inputValue.trim()}
-                className="p-3 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:from-amber-400 text-brand-blue-dark transition-all disabled:opacity-40 disabled:hover:from-brand-gold flex items-center justify-center"
+                className="p-3 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:from-amber-400 text-brand-blue-dark transition-all disabled:opacity-40 flex items-center justify-center"
               >
                 <Send className="w-4.5 h-4.5" />
               </button>
             </form>
           </div>
-
         </div>
 
         {/* Right Column: Real-time Live Preview Browser */}
         <div className="hidden lg:flex flex-1 flex-col bg-slate-950/30 overflow-hidden relative">
           
-          {/* Browser address bar / controllers */}
+          {/* Browser Address and Viewport settings */}
           <div className="h-12 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-950/80">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-slate-800" />
@@ -548,7 +647,6 @@ export default function ConversationalCopilotBuilder() {
               </span>
             </div>
 
-            {/* Viewport size switcher */}
             <div className="flex items-center gap-1.5">
               <button 
                 onClick={() => setPreviewMode("desktop")}
@@ -571,59 +669,132 @@ export default function ConversationalCopilotBuilder() {
             </div>
           </div>
 
-          {/* Browser Screen area */}
+          {/* Browser dynamic preview screen */}
           <div className="flex-1 overflow-hidden p-6 flex justify-center items-start bg-slate-900/10">
             <div className={`h-full border border-slate-800 bg-black/40 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ${
               previewMode === "desktop" ? "w-full" : previewMode === "tablet" ? "w-[680px]" : "w-[360px]"
             }`}>
               
               {/* Dynamic Live website page */}
-              <div className={`h-full overflow-y-auto font-sans relative transition-all duration-500 ${previewTheme.bg} ${
+              <div className={`h-full overflow-y-auto relative transition-all duration-500 ${previewTheme.bg} ${
                 isLight ? "text-slate-850" : "text-slate-350"
-              }`}>
+              } ${getFontFamilyClass()}`}>
                 
-                {/* Website Header */}
-                <div className={`flex items-center justify-between p-6 border-b ${
-                  isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"
-                }`}>
-                  <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
-                    {brandName}
-                  </div>
-                  <div className="hidden sm:flex items-center gap-6 text-xs font-semibold select-none">
-                    <span className="hover:text-white cursor-pointer transition-colors">Início</span>
-                    {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
-                    {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
-                    {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
-                    {features.includes("faq") && <span className="hover:text-white cursor-pointer transition-colors">Perguntas</span>}
-                  </div>
-                </div>
-
-                {/* Hero block */}
-                <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
-                  <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
-                    isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
+                {/* DYNAMIC HEADER VARIANT */}
+                {headerVariant === "centralized" ? (
+                  <div className={`flex flex-col items-center justify-center p-6 gap-3 border-b ${
+                    isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"
                   }`}>
-                    <Sparkles className="w-3 h-3 text-brand-gold" />
-                    {category}
+                    <div className={`font-bold text-xl flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
+                      <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
+                      {brandName}
+                    </div>
+                    <div className="flex items-center gap-6 text-[10px] uppercase tracking-wider font-semibold select-none">
+                      <span className="hover:text-white cursor-pointer transition-colors">Início</span>
+                      {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
+                      {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
+                      {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
+                    </div>
                   </div>
-                  <h1 className={`text-3xl font-display font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                    {previewContent.heroTitle}
-                  </h1>
-                  <p className="text-xs leading-relaxed max-w-md mx-auto">
-                    {previewContent.heroSubtitle}
-                  </p>
-                  <div className="flex items-center justify-center gap-3">
-                    <button className={`px-5 py-2.5 rounded-xl text-xs font-bold ${previewTheme.btnAccent}`}>
-                      Conhecer Serviços
-                    </button>
-                    <button className={`px-5 py-2.5 rounded-xl text-xs font-bold border ${previewTheme.btnOutline}`}>
-                      Fale Connosco
-                    </button>
+                ) : (
+                  <div className={`flex items-center justify-between p-6 border-b ${
+                    headerVariant === "sticky" ? "sticky top-0 z-45 backdrop-blur-md" : ""
+                  } ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
+                    <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
+                      <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
+                      {brandName}
+                    </div>
+                    <div className="flex items-center gap-6 text-xs font-semibold select-none">
+                      <span className="hover:text-white cursor-pointer transition-colors">Início</span>
+                      {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
+                      {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
+                      {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Services layout section */}
+                {/* DYNAMIC HERO VARIANT */}
+                {heroVariant === "minimalist" ? (
+                  <div className="py-28 px-8 text-center space-y-4 max-w-xl mx-auto">
+                    <h1 className={`text-3xl font-light tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {previewContent.heroTitle}
+                    </h1>
+                    <p className="text-[11px] text-slate-500 leading-relaxed max-w-sm mx-auto">
+                      {previewContent.heroSubtitle}
+                    </p>
+                    <div className="pt-4">
+                      <button className="text-xs font-semibold hover:underline flex items-center gap-1 mx-auto text-brand-gold">
+                        Explorar portfólio <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : heroVariant === "premium" ? (
+                  <div className="py-24 px-8 text-center space-y-8 max-w-3xl mx-auto">
+                    <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[9px] uppercase tracking-widest font-extrabold ${
+                      isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
+                    }`}>
+                      <Sparkles className="w-3 h-3 text-brand-gold" />
+                      {category}
+                    </div>
+                    <h1 className={`text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight uppercase ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {previewContent.heroTitle}
+                    </h1>
+                    <p className="text-xs leading-relaxed max-w-md mx-auto text-slate-400">
+                      {previewContent.heroSubtitle}
+                    </p>
+                    <div className="flex items-center justify-center gap-4 pt-2">
+                      <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold transition-transform hover:scale-[1.02] shadow-lg ${previewTheme.btnAccent}`}>
+                        Começar Agora
+                      </button>
+                      <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold border transition-colors ${previewTheme.btnOutline}`}>
+                        Falar Connosco
+                      </button>
+                    </div>
+                  </div>
+                ) : heroVariant === "restaurant" ? (
+                  <div className="py-20 px-8 text-left space-y-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div className="space-y-6">
+                      <h1 className={`text-3xl sm:text-4xl font-serif font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                        {previewContent.heroTitle}
+                      </h1>
+                      <p className="text-xs leading-relaxed text-slate-400">
+                        {previewContent.heroSubtitle}
+                      </p>
+                      <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
+                        Fazer Reserva Online
+                      </button>
+                    </div>
+                    <div className={`aspect-square rounded-2xl flex items-center justify-center border text-[11px] font-semibold italic ${previewTheme.card} ${getShadowClass()}`}>
+                      Prato de Assinatura - Foto
+                    </div>
+                  </div>
+                ) : (
+                  // Default/Modern hero variant
+                  <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
+                    <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
+                      isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
+                    }`}>
+                      <Sparkles className="w-3 h-3 text-brand-gold" />
+                      {category}
+                    </div>
+                    <h1 className={`text-3xl font-display font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {previewContent.heroTitle}
+                    </h1>
+                    <p className="text-xs leading-relaxed max-w-md mx-auto">
+                      {previewContent.heroSubtitle}
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                      <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
+                        Nossos Serviços
+                      </button>
+                      <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border ${previewTheme.btnOutline}`}>
+                        Contacto
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* SERVICES SECTION */}
                 {features.includes("servicos") && (
                   <div className="py-16 px-8 border-t border-white/5 max-w-4xl mx-auto space-y-8">
                     <div className="text-center space-y-1.5">
@@ -632,7 +803,14 @@ export default function ConversationalCopilotBuilder() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {previewContent.services.map((srv, idx) => (
-                        <div key={idx} className={`p-4.5 rounded-2xl border flex flex-col justify-between h-[150px] ${previewTheme.card}`}>
+                        <div 
+                          key={idx} 
+                          className={`p-5 flex flex-col justify-between h-[150px] transition-all ${getBorderRadiusClass()} ${
+                            cardVariant === "minimalist" ? "border-slate-800 bg-transparent text-left" :
+                            cardVariant === "elevated" ? "bg-slate-900 border border-slate-800 shadow-md" :
+                            previewTheme.card
+                          } ${getShadowClass()}`}
+                        >
                           <div className="space-y-1.5">
                             <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"}`}>{srv.name}</h4>
                             <p className="text-[10px] text-slate-450 leading-relaxed">{srv.desc}</p>
@@ -644,7 +822,7 @@ export default function ConversationalCopilotBuilder() {
                   </div>
                 )}
 
-                {/* Gallery layout section */}
+                {/* GALLERY SECTION */}
                 {features.includes("galeria") && (
                   <div className="py-16 px-8 border-t border-white/5 max-w-4xl mx-auto space-y-8">
                     <div className="text-center space-y-1.5">
@@ -653,7 +831,7 @@ export default function ConversationalCopilotBuilder() {
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className={`aspect-video rounded-lg flex items-center justify-center text-[10px] border ${previewTheme.card}`}>
+                        <div key={i} className={`aspect-video flex items-center justify-center text-[10px] border ${getBorderRadiusClass()} ${previewTheme.card} ${getShadowClass()}`}>
                           Imagem {i}
                         </div>
                       ))}
@@ -661,7 +839,7 @@ export default function ConversationalCopilotBuilder() {
                   </div>
                 )}
 
-                {/* Testimonials layout section */}
+                {/* TESTIMONIALS SECTION */}
                 {features.includes("depoimentos") && (
                   <div className="py-16 px-8 border-t border-white/5 max-w-3xl mx-auto space-y-8">
                     <div className="text-center space-y-1.5">
@@ -673,7 +851,7 @@ export default function ConversationalCopilotBuilder() {
                         { name: "Maria Silva", text: "Excelente atendimento e dedicação total." },
                         { name: "João Santos", text: "O website ficou excelente e super rápido!" }
                       ].map((dep, idx) => (
-                        <div key={idx} className={`p-4 rounded-xl border space-y-2.5 ${previewTheme.card}`}>
+                        <div key={idx} className={`p-4 border space-y-2.5 ${getBorderRadiusClass()} ${previewTheme.card} ${getShadowClass()}`}>
                           <div className="flex text-amber-400 gap-0.5">
                             {[...Array(5)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-amber-400" />)}
                           </div>
@@ -685,7 +863,7 @@ export default function ConversationalCopilotBuilder() {
                   </div>
                 )}
 
-                {/* FAQ layout section */}
+                {/* FAQ SECTION */}
                 {features.includes("faq") && (
                   <div className="py-16 px-8 border-t border-white/5 max-w-3xl mx-auto space-y-6">
                     <h2 className="text-xl font-bold text-white text-center mb-6">Perguntas Frequentes</h2>
@@ -694,7 +872,7 @@ export default function ConversationalCopilotBuilder() {
                         { q: "Quais são os vossos prazos de entrega?", a: "Dependendo da dimensão do projeto, tipicamente realizamos a entrega final num prazo de 3 a 7 dias úteis." },
                         { q: "Posso solicitar alterações após a publicação?", a: "Sim, suportamos facilidade de alteração e modificações continuas a qualquer momento." }
                       ].map((faq, fi) => (
-                        <div key={fi} className={`p-4 rounded-xl border ${previewTheme.card}`}>
+                        <div key={fi} className={`p-4 border ${getBorderRadiusClass()} ${previewTheme.card} ${getShadowClass()}`}>
                           <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"} mb-1.5`}>{faq.q}</h4>
                           <p className="text-[10px] text-slate-450 leading-relaxed">{faq.a}</p>
                         </div>
@@ -703,7 +881,7 @@ export default function ConversationalCopilotBuilder() {
                   </div>
                 )}
 
-                {/* Contact layout section */}
+                {/* CONTACT SECTION */}
                 {features.includes("contactos") && (
                   <div className="py-16 px-8 border-t border-white/5 max-w-md mx-auto space-y-6">
                     <h2 className={`text-xl font-bold text-center ${isLight ? "text-slate-900" : "text-white"}`}>Contacte-nos</h2>
@@ -711,25 +889,25 @@ export default function ConversationalCopilotBuilder() {
                       <input
                         type="text"
                         placeholder="Nome"
-                        className={`w-full bg-black/10 border rounded-lg p-2.5 text-xs focus:outline-none ${
+                        className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()} ${
                           isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
                         }`}
                       />
                       <input
                         type="email"
                         placeholder="Email"
-                        className={`w-full bg-black/10 border rounded-lg p-2.5 text-xs focus:outline-none ${
+                        className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()} ${
                           isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
                         }`}
                       />
                       <textarea
                         rows={3}
                         placeholder="Mensagem..."
-                        className={`w-full bg-black/10 border rounded-lg p-2.5 text-xs focus:outline-none resize-none ${
+                        className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none resize-none ${getBorderRadiusClass()} ${
                           isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
                         }`}
                       />
-                      <button className={`w-full py-2.5 rounded-lg text-xs font-bold ${previewTheme.btnAccent}`}>
+                      <button className={`w-full py-2.5 text-xs font-bold ${getBorderRadiusClass()} ${previewTheme.btnAccent}`}>
                         Enviar Mensagem
                       </button>
                     </form>
