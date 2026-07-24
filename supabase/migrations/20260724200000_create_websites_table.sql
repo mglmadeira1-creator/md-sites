@@ -1,5 +1,15 @@
+-- Limpar tabelas existentes (Ordem reversa de dependências para evitar erros de chave estrangeira)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+DROP TABLE IF EXISTS public.settings CASCADE;
+DROP TABLE IF EXISTS public.assets CASCADE;
+DROP TABLE IF EXISTS public.domains CASCADE;
+DROP TABLE IF EXISTS public.pages CASCADE;
+DROP TABLE IF EXISTS public.websites CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+
 -- 1. Perfis de Utilizadores (Associado ao auth.users do Supabase)
-CREATE TABLE IF NOT EXISTS public.profiles (
+CREATE TABLE public.profiles (
     id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     created_at timestamptz DEFAULT now() NOT NULL,
     email text,
@@ -37,7 +47,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 
 
 -- 2. Tabela de Websites
-CREATE TABLE IF NOT EXISTS public.websites (
+CREATE TABLE public.websites (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at timestamptz DEFAULT now() NOT NULL,
     name text NOT NULL,
@@ -71,7 +81,7 @@ CREATE POLICY "Permitir eliminação de websites" ON public.websites
 
 
 -- 3. Tabela de Páginas do Website (Conteúdo Adicional)
-CREATE TABLE IF NOT EXISTS public.pages (
+CREATE TABLE public.pages (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at timestamptz DEFAULT now() NOT NULL,
     website_id uuid REFERENCES public.websites(id) ON DELETE CASCADE NOT NULL,
@@ -100,7 +110,7 @@ CREATE POLICY "Permitir eliminação de páginas" ON public.pages
 
 
 -- 4. Tabela de Domínios Customizados
-CREATE TABLE IF NOT EXISTS public.domains (
+CREATE TABLE public.domains (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at timestamptz DEFAULT now() NOT NULL,
     website_id uuid REFERENCES public.websites(id) ON DELETE CASCADE NOT NULL UNIQUE,
@@ -110,7 +120,7 @@ CREATE TABLE IF NOT EXISTS public.domains (
 
 CREATE INDEX IF NOT EXISTS idx_domains_name ON public.domains(domain_name);
 
--- RLS nos Domínios
+-- Habilitar RLS nos Domínios
 ALTER TABLE public.domains ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Permitir leitura pública de domínios" ON public.domains
@@ -127,7 +137,7 @@ CREATE POLICY "Permitir eliminação de domínios" ON public.domains
 
 
 -- 5. Tabela de Assets (Logótipos, Imagens, etc.)
-CREATE TABLE IF NOT EXISTS public.assets (
+CREATE TABLE public.assets (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at timestamptz DEFAULT now() NOT NULL,
     website_id uuid REFERENCES public.websites(id) ON DELETE CASCADE,
@@ -151,7 +161,7 @@ CREATE POLICY "Permitir eliminação de assets" ON public.assets
 
 
 -- 6. Tabela de Definições Globais e SEO
-CREATE TABLE IF NOT EXISTS public.settings (
+CREATE TABLE public.settings (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at timestamptz DEFAULT now() NOT NULL,
     website_id uuid REFERENCES public.websites(id) ON DELETE CASCADE NOT NULL UNIQUE,
