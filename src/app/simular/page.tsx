@@ -22,7 +22,8 @@ import {
   MessageSquare,
   PanelLeft,
   X,
-  Star
+  Star,
+  Shuffle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import canvasConfetti from "canvas-confetti";
@@ -44,20 +45,23 @@ export default function ConversationalCopilotBuilder() {
   const [activeLogs, setActiveLogs] = useState<string[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // States representing the dynamic website
+  // Core brand settings
   const [brandName, setBrandName] = useState("A Minha Marca");
   const [category, setCategory] = useState("Serviços Profissionais");
   const [description, setDescription] = useState("Descreve o teu negócio e veja a IA criar os conteúdos.");
   const [palette, setPalette] = useState("blue-gold");
   const [features, setFeatures] = useState<string[]>(["servicos", "contactos"]);
-  
-  // Design System States (Intelligent Design)
-  const [heroVariant, setHeroVariant] = useState("modern"); // minimalist, modern, premium, corporate, creative, restaurant
-  const [headerVariant, setHeaderVariant] = useState("sticky"); // transparent, classic, sticky, centralized
-  const [cardVariant, setCardVariant] = useState("glass"); // minimalist, elevated, glass, premium
+
+  // Design System States (Copilot v4.0 Library of Components)
+  const [heroVariant, setHeroVariant] = useState("modern"); // minimalist, modern, premium, creative, corporate, restaurant, hotel, saas, portfolio, loja, fotografia, luxo
+  const [headerVariant, setHeaderVariant] = useState("sticky"); // minimal, glass, transparent, sticky, center, split, corporate, premium
+  const [cardVariant, setCardVariant] = useState("glass"); // minimal, premium, glass, gradient, rounded, square, elevated, interactive
+  const [ctaVariant, setCtaVariant] = useState("modern"); // modern, outline, filled, animated, gradient, floating
+  const [footerVariant, setFooterVariant] = useState("corporate"); // minimal, corporate, premium, newsletter, multi-column
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
+  const [spacingScale, setSpacingScale] = useState("normal"); // compact, normal, wide
 
   const [isCompleted, setIsCompleted] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
@@ -69,13 +73,13 @@ export default function ConversationalCopilotBuilder() {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu designer de marca e programador pessoal. Descreve o website que imaginas (ex: 'Quero um site estilo Apple', 'Cria um site minimalista preto e dourado para advocacia' ou 'Cria um site divertido e colorido para crianças').\n\nEu crio um Design System único com layouts e componentes adaptados!",
+        text: "Olá! Sou o AI Copilot v4.0 da MD Sites. 🤖\n\nSou o teu Diretor Criativo e Designer de UI/UX dedicado. Não te limites a templates fixos. Descreve a tua ideia com linguagem natural:\n\n• *'Quero um site estilo Apple minimalista em tons cinza'* \n• *'Cria um site premium preto e dourado para uma marca de luxo'* \n• *'Cria um layout futurista Tesla com sombras neon'* \n• *'Cria um site moderno parecido com a Stripe'* \n\nEu cuidarei de todo o Design System e da estrutura!",
         timestamp: new Date(),
         suggestions: [
-          "Cria um website estilo Apple.",
+          "Cria um website minimalista estilo Apple.",
           "Cria um site de carros elétricos estilo Tesla.",
-          "Quero um site inspirado no Spotify para um estúdio de som.",
-          "Faz um website infantil colorido para ATL."
+          "Quero um design moderno inspirado no Stripe.",
+          "Faz um portfólio criativo inspirado no Spotify."
         ]
       }
     ]);
@@ -101,7 +105,7 @@ export default function ConversationalCopilotBuilder() {
             setFeatures(data.features);
             setIsCompleted(true);
 
-            // Deserialize combined layout variables from the palette column
+            // Deserialize complex v4.0 design params from database palette field
             const parts = data.palette.split(":");
             if (parts.length > 1) {
               setPalette(parts[0]);
@@ -109,7 +113,11 @@ export default function ConversationalCopilotBuilder() {
               setCardVariant(parts[2] || "glass");
               setBorderRadius(parts[3] || "xl");
               setFontFamily(parts[4] || "sans");
-              if (parts[5]) setShadowStyle(parts[5]);
+              setShadowStyle(parts[5] || "glow");
+              setHeaderVariant(parts[6] || "sticky");
+              setCtaVariant(parts[7] || "modern");
+              setFooterVariant(parts[8] || "corporate");
+              setSpacingScale(parts[9] || "normal");
             } else {
               setPalette(data.palette);
             }
@@ -118,11 +126,11 @@ export default function ConversationalCopilotBuilder() {
               ...prev,
               {
                 sender: "ai",
-                text: `Carreguei com sucesso a identidade de **${data.name}**. Que modificações de design ou novas secções queres fazer agora?`,
+                text: `Carreguei com sucesso o website **${data.name}**. Que modificações de design ou novas secções gostarias que eu aplicasse no Design System hoje?`,
                 timestamp: new Date(),
                 suggestions: [
-                  "Mudar para estilo minimalista",
-                  "Mudar para cores da Tesla",
+                  "Mudar para estilo Apple minimalista",
+                  "Mudar para estilo Tesla futurista",
                   "Adicionar secção de FAQ"
                 ]
               }
@@ -139,7 +147,81 @@ export default function ConversationalCopilotBuilder() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, aiTyping]);
 
-  // Intelligent Design Prompt Parser
+  // Dynamic Generator of Visual Ideas (✨ Gerar Outra Ideia)
+  const handleGenerateOtherIdea = () => {
+    if (!isCompleted) {
+      handleSend("Cria um website profissional.");
+      return;
+    }
+
+    setAiTyping(true);
+    setActiveLogs([
+      "❯ A rebarbar Design System...",
+      "❯ A baralhar Biblioteca de Componentes...",
+      "❯ A aplicar nova paleta e tipografia...",
+      "❯ A reorganizar grelha de secções..."
+    ]);
+
+    setTimeout(() => {
+      // Randomize everything except text content
+      const heroes = ["minimalist", "modern", "premium", "creative", "corporate", "restaurant", "hotel", "saas", "portfolio", "loja", "fotografia", "luxo"];
+      const headers = ["minimal", "glass", "transparent", "sticky", "center", "split", "corporate", "premium"];
+      const cards = ["minimal", "premium", "glass", "gradient", "rounded", "square", "elevated", "interactive"];
+      const ctas = ["modern", "outline", "filled", "animated", "gradient", "floating"];
+      const footers = ["minimal", "corporate", "premium", "newsletter", "multi-column"];
+      const borders = ["none", "md", "xl", "full"];
+      const fonts = ["sans", "mono", "display", "serif"];
+      const shadows = ["none", "sm", "lg", "glow"];
+      const palettes = ["blue-gold", "indigo-purple", "emerald-dark", "mono-light"];
+      const spacings = ["compact", "normal", "wide"];
+
+      const rHero = heroes[Math.floor(Math.random() * heroes.length)];
+      const rHeader = headers[Math.floor(Math.random() * headers.length)];
+      const rCard = cards[Math.floor(Math.random() * cards.length)];
+      const rCta = ctas[Math.floor(Math.random() * ctas.length)];
+      const rFooter = footers[Math.floor(Math.random() * footers.length)];
+      const rBorder = borders[Math.floor(Math.random() * borders.length)];
+      const rFont = fonts[Math.floor(Math.random() * fonts.length)];
+      const rShadow = shadows[Math.floor(Math.random() * shadows.length)];
+      const rPalette = palettes[Math.floor(Math.random() * palettes.length)];
+      const rSpacing = spacings[Math.floor(Math.random() * spacings.length)];
+
+      setHeroVariant(rHero);
+      setHeaderVariant(rHeader);
+      setCardVariant(rCard);
+      setCtaVariant(rCta);
+      setFooterVariant(rFooter);
+      setBorderRadius(rBorder);
+      setFontFamily(rFont);
+      setShadowStyle(rShadow);
+      setPalette(rPalette);
+      setSpacingScale(rSpacing);
+
+      setMessages(prev => [
+        ...prev,
+        {
+          sender: "ai",
+          text: `Gerei uma nova proposta visual para **${brandName}** mantendo os mesmos conteúdos! Mudei o Hero para *${rHero}*, a paleta para *${rPalette}*, tipografia para *${rFont}* e cartões para *${rCard}*. O que achas desta nova alternativa?`,
+          timestamp: new Date(),
+          suggestions: [
+            "Gosto desta, manter!",
+            "Gerar outra ideia visual",
+            "Mudar para estilo minimalista"
+          ]
+        }
+      ]);
+
+      canvasConfetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+      setAiTyping(false);
+      setActiveLogs([]);
+    }, 1400);
+  };
+
+  // AI Prompt Parser (Copilot v4.0 Parser)
   const interpretUserPrompt = (prompt: string) => {
     const p = prompt.toLowerCase();
     
@@ -149,112 +231,123 @@ export default function ConversationalCopilotBuilder() {
     let detectedPalette = palette;
     let detectedFeatures = [...features];
 
-    // Design System Default fallbacks
+    // Design System variables
     let dHero = heroVariant;
     let dHeader = headerVariant;
     let dCard = cardVariant;
+    let dCta = ctaVariant;
+    let dFooter = footerVariant;
     let dBorder = borderRadius;
     let dFont = fontFamily;
     let dShadow = shadowStyle;
+    let dSpacing = spacingScale;
 
-    // 1. STYLE INTERPRETATIONS (Apple, Tesla, Spotify, Infantil, Luxo/Premium, etc.)
-    if (p.includes("apple") || p.includes("minimalista")) {
+    // A. INSPIRING BRANDS
+    if (p.includes("apple")) {
       detectedPalette = "mono-light";
       dHero = "minimalist";
-      dHeader = "transparent";
-      dCard = "minimalist";
+      dHeader = "minimal";
+      dCard = "minimal";
+      dCta = "outline";
+      dFooter = "minimal";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "none";
-      detectedDesc = "Desenho minimalista focado na simplicidade, elegância e espaço em branco.";
+      dSpacing = "wide";
+      detectedDesc = "Interface minimalista ultra limpa inspirada nos padrões visuais da Apple.";
     } 
-    else if (p.includes("tesla") || p.includes("futurista")) {
+    else if (p.includes("tesla")) {
       detectedPalette = "indigo-purple";
       dHero = "premium";
       dHeader = "sticky";
       dCard = "premium";
+      dCta = "filled";
+      dFooter = "premium";
       dBorder = "md";
       dFont = "display";
       dShadow = "glow";
-      detectedDesc = "Estilo futurista e imersivo com imagens em escala total e tipografia impactante.";
+      dSpacing = "normal";
+      detectedDesc = "Layout futurista e minimalista imersivo com cartões elevados e glows coloridos.";
     }
-    else if (p.includes("spotify") || p.includes("divertido") && p.includes("escuro")) {
+    else if (p.includes("stripe")) {
+      detectedPalette = "indigo-purple";
+      dHero = "saas";
+      dHeader = "split";
+      dCard = "interactive";
+      dCta = "gradient";
+      dFooter = "multi-column";
+      dBorder = "xl";
+      dFont = "sans";
+      dShadow = "lg";
+      dSpacing = "normal";
+      detectedDesc = "Design moderno SaaS focado em conversão, com grelhas complexas e botões em gradiente.";
+    }
+    else if (p.includes("spotify")) {
       detectedPalette = "indigo-purple";
       dHero = "creative";
-      dHeader = "sticky";
+      dHeader = "glass";
       dCard = "glass";
+      dCta = "floating";
+      dFooter = "newsletter";
       dBorder = "full";
       dFont = "mono";
       dShadow = "glow";
-      detectedDesc = "Inspirado em gradientes, cores vibrantes no escuro e cartões destacados.";
+      dSpacing = "compact";
     }
-    else if (p.includes("infantil") || p.includes("crianças") || p.includes("colorido")) {
-      detectedPalette = "emerald-dark"; // Custom color handling below
-      dHero = "creative";
-      dHeader = "classic";
-      dCard = "elevated";
-      dBorder = "full";
-      dFont = "display";
-      dShadow = "lg";
-      detectedDesc = "Ambiente alegre, acolhedor e visualmente dinâmico desenhado para crianças.";
-    }
-    else if (p.includes("luxo") || p.includes("premium") || p.includes("elegante")) {
+
+    // B. DIFFERENT PERSONALITIES
+    if (p.includes("luxo") || p.includes("premium") || p.includes("elegante")) {
       detectedPalette = "blue-gold";
-      dHero = "premium";
-      dHeader = "centralized";
+      dHero = "luxo";
+      dHeader = "premium";
       dCard = "premium";
+      dCta = "animated";
+      dFooter = "premium";
       dBorder = "none";
       dFont = "serif";
       dShadow = "lg";
-      detectedDesc = "Estética corporativa refinada, tons sóbrios e detalhes dourados de alta autoridade.";
+    }
+    else if (p.includes("infantil") || p.includes("divertido") || p.includes("crianças")) {
+      detectedPalette = "emerald-dark";
+      dHero = "creative";
+      dHeader = "center";
+      dCard = "rounded";
+      dCta = "floating";
+      dFooter = "newsletter";
+      dBorder = "full";
+      dFont = "display";
+      dShadow = "lg";
     }
 
-    // 2. DETECT CATEGORY / SECTOR
-    if (p.includes("restaurante") || p.includes("pizzaria") || p.includes("italiano") || p.includes("comida") || p.includes("cafe")) {
-      detectedCat = "Restaurante & Gastronomia";
-      detectedDesc = "Uma viagem de sabores concebida com produtos frescos da época.";
+    // C. CATEGORIES & SECTORS
+    if (p.includes("restaurante") || p.includes("pizzaria") || p.includes("comida")) {
+      detectedCat = "Restaurante & Cafetaria";
+      detectedDesc = "Experiência de assinatura gastronómica autêntica.";
       dHero = "restaurant";
-      dCard = "elevated";
-      if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "Forno d'Ouro";
-      }
+      dHeader = "classic";
       if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
-    } 
-    else if (p.includes("tecnologia") || p.includes("saas") || p.includes("consultor") || p.includes("software")) {
-      detectedCat = "Tecnologia & SaaS";
-      detectedDesc = "Engenharia de software avançada para otimizar os fluxos da sua empresa.";
-      if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "Cyber Core Systems";
-      }
     }
-    else if (p.includes("clinica") || p.includes("saude") || p.includes("estetica") || p.includes("spa")) {
-      detectedCat = "Saúde & Estética";
-      detectedDesc = "Cuidado personalizado de saúde e bem-estar dermatológico.";
-      if (brandName === "A Minha Marca" || brandName === "A Minha Empresa") {
-        detectedName = "DermaGlow Clinic";
-      }
+    else if (p.includes("advogado") || p.includes("consultoria") || p.includes("juridico")) {
+      detectedCat = "Apoio Jurídico & Fiscal";
+      detectedDesc = "Representação e aconselhamento profissional focado em rigor e confiança.";
+      dHero = "corporate";
+      dHeader = "corporate";
+      dFont = "serif";
+      if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
     }
 
-    // 3. BRAND NAME EXTRACTOR
-    const nameMatch = prompt.match(/chamad[oa]\s+["']?([^"']+)["']?/i) || prompt.match(/nome\s+["']?([^"']+)["']?/i);
-    if (nameMatch && nameMatch[1]) {
-      detectedName = nameMatch[1].trim();
-    }
+    // D. DYNAMIC ADJUSTMENTS
+    if (p.includes("azul") || p.includes("indigo")) detectedPalette = "indigo-purple";
+    if (p.includes("verde") || p.includes("esmeralda")) detectedPalette = "emerald-dark";
+    if (p.includes("dourado") || p.includes("preto")) detectedPalette = "blue-gold";
+    if (p.includes("claro") || p.includes("branco")) detectedPalette = "mono-light";
 
-    // 4. REACTIVE DESIGN ADJUSTMENTS
-    if (p.includes("muda") || p.includes("troca") || p.includes("mete") || p.includes("altera")) {
-      if (p.includes("azul") || p.includes("roxo")) detectedPalette = "indigo-purple";
-      if (p.includes("verde") || p.includes("esmeralda")) detectedPalette = "emerald-dark";
-      if (p.includes("dourado") || p.includes("preto")) detectedPalette = "blue-gold";
-      if (p.includes("branco") || p.includes("claro")) detectedPalette = "mono-light";
+    if (p.includes("arredondado") || p.includes("redondo")) dBorder = "full";
+    if (p.includes("quadrado") || p.includes("reto")) dBorder = "none";
+    if (p.includes("serif")) dFont = "serif";
+    if (p.includes("mono")) dFont = "mono";
 
-      if (p.includes("serif") || p.includes("serifa") || p.includes("classica")) dFont = "serif";
-      if (p.includes("mono") || p.includes("codigo")) dFont = "mono";
-      if (p.includes("arredondado") || p.includes("redondo")) dBorder = "full";
-      if (p.includes("quadrado") || p.includes("reto")) dBorder = "none";
-    }
-
-    // 5. WIDGET FEATURES
+    // E. WIDGET FEATURES
     if (p.includes("whatsapp")) {
       if (!detectedFeatures.includes("whatsapp")) detectedFeatures.push("whatsapp");
     }
@@ -264,8 +357,11 @@ export default function ConversationalCopilotBuilder() {
     if (p.includes("faq")) {
       if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
     }
-    if (p.includes("testemunhos") || p.includes("depoimentos")) {
-      if (!detectedFeatures.includes("depoimentos")) detectedFeatures.push("depoimentos");
+
+    // Brand name matching
+    const nameMatch = prompt.match(/chamad[oa]\s+["']?([^"']+)["']?/i) || prompt.match(/nome\s+["']?([^"']+)["']?/i);
+    if (nameMatch && nameMatch[1]) {
+      detectedName = nameMatch[1].trim();
     }
 
     return {
@@ -277,9 +373,12 @@ export default function ConversationalCopilotBuilder() {
       hero: dHero,
       header: dHeader,
       card: dCard,
+      cta: dCta,
+      footer: dFooter,
       border: dBorder,
       font: dFont,
-      shadow: dShadow
+      shadow: dShadow,
+      spacing: dSpacing
     };
   };
 
@@ -291,10 +390,11 @@ export default function ConversationalCopilotBuilder() {
     setAiTyping(true);
 
     const thoughts = [
-      "❯ Analisando briefing criativo...",
-      "❯ Ajustando paleta e tipografia...",
-      "❯ Selecionando componentes no Design System...",
-      "❯ Atualizando grid e layout dinâmico..."
+      "❯ Analisando linguagem natural...",
+      "❯ Escolhendo variantes de header e hero...",
+      "❯ Re-calculando margens e espaçamento do Design System...",
+      "❯ Redigindo textos com IA...",
+      "❯ Sincronizando com a BD do Supabase..."
     ];
 
     let tIdx = 0;
@@ -305,42 +405,45 @@ export default function ConversationalCopilotBuilder() {
       } else {
         clearInterval(thoughtInterval);
       }
-    }, 250);
+    }, 200);
 
     setTimeout(async () => {
-      const design = interpretUserPrompt(text);
+      const parsed = interpretUserPrompt(text);
       
-      setBrandName(design.name);
-      setCategory(design.category);
-      setDescription(design.description);
-      setPalette(design.palette);
-      setFeatures(design.features);
+      setBrandName(parsed.name);
+      setCategory(parsed.category);
+      setDescription(parsed.description);
+      setPalette(parsed.palette);
+      setFeatures(parsed.features);
 
-      // Apply Design system layout options
-      setHeroVariant(design.hero);
-      setHeaderVariant(design.header);
-      setCardVariant(design.card);
-      setBorderRadius(design.border);
-      setFontFamily(design.font);
-      setShadowStyle(design.shadow);
-      
+      // Apply Layout v4.0 design updates
+      setHeroVariant(parsed.hero);
+      setHeaderVariant(parsed.header);
+      setCardVariant(parsed.card);
+      setCtaVariant(parsed.cta);
+      setFooterVariant(parsed.footer);
+      setBorderRadius(parsed.border);
+      setFontFamily(parsed.font);
+      setShadowStyle(parsed.shadow);
+      setSpacingScale(parsed.spacing);
+
       setIsCompleted(true);
 
-      // Serialize Design System variables in the DB palette string field
-      const serializedPalette = `${design.palette}:${design.hero}:${design.card}:${design.border}:${design.font}:${design.shadow}`;
+      // Serialize Design System variables inside the palette field
+      const serializedPalette = `${parsed.palette}:${parsed.hero}:${parsed.card}:${parsed.border}:${parsed.font}:${parsed.shadow}:${parsed.header}:${parsed.cta}:${parsed.footer}:${parsed.spacing}`;
 
-      const slug = design.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const slug = parsed.name.toLowerCase().replace(/[^a-z0-9]/g, "");
       const randomHash = Math.random().toString(36).substring(2, 6);
       const websiteUrl = editId 
         ? `${slug}.mdsites.app`
         : `${slug || "site"}-${randomHash}.mdsites.app`;
 
       const payload = {
-        name: design.name,
-        category: design.category,
-        description: design.description,
+        name: parsed.name,
+        category: parsed.category,
+        description: parsed.description,
         palette: serializedPalette,
-        features: design.features,
+        features: parsed.features,
         url: websiteUrl,
         status: "Publicado"
       };
@@ -354,15 +457,15 @@ export default function ConversationalCopilotBuilder() {
       const nextSuggestions = [
         "Mudar para estilo Apple minimalista",
         "Mudar para estilo Tesla futurista",
-        "Tornar as bordas quadradas",
-        "Adicionar secção de Testemunhos"
+        "Mudar para estilo Stripe moderno",
+        "Gerar outra alternativa visual"
       ];
 
       setMessages(prev => [
         ...prev,
         {
           sender: "ai",
-          text: `Atualizei o website com sucesso no Design System! Efetuei as seguintes alterações:\n\n✓ Layout de Hero: **${design.hero}**\n✓ Fontes: **${design.font}**\n✓ Cantos e Bordas: **${design.border}**\n✓ Sombra / Brilho: **${design.shadow}**\n✓ Estilo de Cards: **${design.card}**\n✓ Paleta: **${design.palette}**\n\nQue refinamento visual gostaria de fazer a seguir?`,
+          text: `Construí um Design System dinâmico de alta fidelidade para **${parsed.name}**!\n\nJustificativa UX/UI:\nComo solicitou um estilo focado em *${text.substring(0, 30)}*, ativei o layout de Hero *${parsed.hero}*, botões em formato *${parsed.cta}*, com o espaçamento *${parsed.spacing}* e cantos *${parsed.border}*.\n\n✓ Layout de Hero: **${parsed.hero}**\n✓ Fontes: **${parsed.font}**\n✓ Spacing: **${parsed.spacing}**\n✓ Botões CTA: **${parsed.cta}**\n\nQue refinamento gostaria de fazer na estrutura do site?`,
           timestamp: new Date(),
           suggestions: nextSuggestions
         }
@@ -379,17 +482,7 @@ export default function ConversationalCopilotBuilder() {
     }, 1500);
   };
 
-  const handleSurpriseMe = () => {
-    const creativeIdeas = [
-      "Cria um website estilo Apple para arquitetura chamado Minimal Space.",
-      "Quero um site estilo Tesla futurista escuro para uma marca de baterias solar.",
-      "Cria um site infantil super colorido chamado Jardim da Fantasia.",
-      "Faz um site estilo Spotify para uma produtora de música chamada Wave Beats."
-    ];
-    const randomPrompt = creativeIdeas[Math.floor(Math.random() * creativeIdeas.length)];
-    handleSend(randomPrompt);
-  };
-
+  // Helper variables mappings for preview styles
   const getThemeClasses = () => {
     switch (palette) {
       case "emerald-dark":
@@ -428,7 +521,6 @@ export default function ConversationalCopilotBuilder() {
     }
   };
 
-  // Resolve visual classes from variables
   const previewTheme = getThemeClasses();
 
   const getBorderRadiusClass = () => {
@@ -465,6 +557,16 @@ export default function ConversationalCopilotBuilder() {
           : palette === "indigo-purple"
           ? "shadow-[0_0_22px_rgba(99,102,241,0.18)] border-indigo-500/20"
           : "shadow-[0_0_22px_rgba(212,175,55,0.16)] border-brand-gold/20";
+    }
+  };
+
+  const getSpacingClass = () => {
+    switch (spacingScale) {
+      case "compact": return "py-10 space-y-4";
+      case "wide": return "py-24 space-y-12";
+      case "normal":
+      default:
+        return "py-16 space-y-8";
     }
   };
 
@@ -512,7 +614,7 @@ export default function ConversationalCopilotBuilder() {
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
       
-      {/* Background image base */}
+      {/* Background decoration */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20 opacity-30 pointer-events-none"
         style={{ backgroundImage: "url('/fundo-paginas.png')" }}
@@ -529,7 +631,7 @@ export default function ConversationalCopilotBuilder() {
             Sair do Copilot
           </button>
           <div className="w-[1px] h-4 bg-slate-800" />
-          <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">AI Designer Studio v3.0</span>
+          <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">AI Designer Studio v4.0</span>
         </div>
         <Image
           src="/logonovo.png"
@@ -547,14 +649,14 @@ export default function ConversationalCopilotBuilder() {
         <div className="w-full lg:w-[480px] border-r border-slate-800/80 flex flex-col bg-slate-950/40 backdrop-blur-md relative z-20 flex-shrink-0">
           <div className="p-4 border-b border-slate-800/80 bg-slate-950/50 flex items-center justify-between">
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse" />
-              AI Designer de Marca
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
+              Diretor de UI/UX Ativo
             </span>
             <button 
-              onClick={handleSurpriseMe}
-              className="text-[10px] font-bold text-brand-gold hover:text-white bg-brand-gold/15 hover:bg-brand-gold/25 px-2.5 py-1 rounded-md transition-all flex items-center gap-1"
+              onClick={handleGenerateOtherIdea}
+              className="text-[10px] font-bold text-brand-gold hover:text-white bg-brand-gold/15 hover:bg-brand-gold/25 px-2.5 py-1.5 rounded-md transition-all flex items-center gap-1.5 border border-brand-gold/25"
             >
-              ✨ Surpreende-me
+              <Shuffle className="w-3.5 h-3.5" /> ✨ Outra Ideia
             </button>
           </div>
 
@@ -591,7 +693,7 @@ export default function ConversationalCopilotBuilder() {
                 <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-350 space-y-2.5 rounded-tl-none w-[80%]">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping" />
-                    <span className="font-bold text-white">O Copilot está a desenhar...</span>
+                    <span className="font-bold text-white">O Copilot está a projetar...</span>
                   </div>
                   {activeLogs.length > 0 && (
                     <div className="space-y-1 font-mono text-[10px] text-[#10b981] border-t border-slate-850 pt-2">
@@ -618,7 +720,7 @@ export default function ConversationalCopilotBuilder() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ex: 'Quero um site estilo Apple minimalista'"
+                placeholder="Ex: 'Cria um design minimalista estilo Apple'"
                 className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
               />
               <button
@@ -635,7 +737,7 @@ export default function ConversationalCopilotBuilder() {
         {/* Right Column: Real-time Live Preview Browser */}
         <div className="hidden lg:flex flex-1 flex-col bg-slate-950/30 overflow-hidden relative">
           
-          {/* Browser Address and Viewport settings */}
+          {/* Browser Toolbar */}
           <div className="h-12 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-950/80">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-slate-800" />
@@ -669,7 +771,7 @@ export default function ConversationalCopilotBuilder() {
             </div>
           </div>
 
-          {/* Browser dynamic preview screen */}
+          {/* Browser Area */}
           <div className="flex-1 overflow-hidden p-6 flex justify-center items-start bg-slate-900/10">
             <div className={`h-full border border-slate-800 bg-black/40 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ${
               previewMode === "desktop" ? "w-full" : previewMode === "tablet" ? "w-[680px]" : "w-[360px]"
@@ -681,7 +783,7 @@ export default function ConversationalCopilotBuilder() {
               } ${getFontFamilyClass()}`}>
                 
                 {/* DYNAMIC HEADER VARIANT */}
-                {headerVariant === "centralized" ? (
+                {headerVariant === "center" ? (
                   <div className={`flex flex-col items-center justify-center p-6 gap-3 border-b ${
                     isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"
                   }`}>
@@ -695,6 +797,19 @@ export default function ConversationalCopilotBuilder() {
                       {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
                       {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
                     </div>
+                  </div>
+                ) : headerVariant === "split" ? (
+                  <div className={`flex items-center justify-between p-6 border-b ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
+                    <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {brandName}
+                    </div>
+                    <div className="flex items-center gap-6 text-xs font-semibold select-none">
+                      <span className="hover:text-white cursor-pointer transition-colors">Início</span>
+                      {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
+                    </div>
+                    <button className={`px-4 py-2 text-[10px] font-bold ${getBorderRadiusClass()} ${previewTheme.btnAccent}`}>
+                      Aceder App ➔
+                    </button>
                   </div>
                 ) : (
                   <div className={`flex items-center justify-between p-6 border-b ${
@@ -716,7 +831,7 @@ export default function ConversationalCopilotBuilder() {
                 {/* DYNAMIC HERO VARIANT */}
                 {heroVariant === "minimalist" ? (
                   <div className="py-28 px-8 text-center space-y-4 max-w-xl mx-auto">
-                    <h1 className={`text-3xl font-light tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                    <h1 className={`text-3.5xl font-light tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                       {previewContent.heroTitle}
                     </h1>
                     <p className="text-[11px] text-slate-500 leading-relaxed max-w-sm mx-auto">
@@ -728,27 +843,29 @@ export default function ConversationalCopilotBuilder() {
                       </button>
                     </div>
                   </div>
-                ) : heroVariant === "premium" ? (
-                  <div className="py-24 px-8 text-center space-y-8 max-w-3xl mx-auto">
-                    <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[9px] uppercase tracking-widest font-extrabold ${
-                      isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
-                    }`}>
-                      <Sparkles className="w-3 h-3 text-brand-gold" />
-                      {category}
-                    </div>
-                    <h1 className={`text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight uppercase ${isLight ? "text-slate-900" : "text-white"}`}>
+                ) : heroVariant === "saas" ? (
+                  <div className="py-20 px-8 text-center space-y-6 max-w-4xl mx-auto">
+                    <h1 className={`text-4xl font-extrabold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                       {previewContent.heroTitle}
                     </h1>
-                    <p className="text-xs leading-relaxed max-w-md mx-auto text-slate-400">
+                    <p className="text-xs leading-relaxed max-w-md mx-auto">
                       {previewContent.heroSubtitle}
                     </p>
-                    <div className="flex items-center justify-center gap-4 pt-2">
-                      <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold transition-transform hover:scale-[1.02] shadow-lg ${previewTheme.btnAccent}`}>
-                        Começar Agora
+                    <div className="flex justify-center gap-3">
+                      <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
+                        Experimentar Grátis
                       </button>
-                      <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold border transition-colors ${previewTheme.btnOutline}`}>
-                        Falar Connosco
-                      </button>
+                    </div>
+                    {/* Mockup Dashboard Preview */}
+                    <div className={`mt-8 w-full max-w-2xl h-44 rounded-xl border border-slate-800 bg-[#070b16] p-3 shadow-2xl flex flex-col justify-start mx-auto`}>
+                      <div className="flex items-center gap-1.5 border-b border-slate-850 pb-2">
+                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                        <span className="w-2 h-2 rounded-full bg-amber-500" />
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      </div>
+                      <div className="flex-1 flex items-center justify-center text-[10px] text-slate-650 italic">
+                        Visualização do Painel Administrativo SaaS
+                      </div>
                     </div>
                   </div>
                 ) : heroVariant === "restaurant" ? (
@@ -761,15 +878,14 @@ export default function ConversationalCopilotBuilder() {
                         {previewContent.heroSubtitle}
                       </p>
                       <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
-                        Fazer Reserva Online
+                        Reservar Mesa
                       </button>
                     </div>
                     <div className={`aspect-square rounded-2xl flex items-center justify-center border text-[11px] font-semibold italic ${previewTheme.card} ${getShadowClass()}`}>
-                      Prato de Assinatura - Foto
+                      Foto do Prato
                     </div>
                   </div>
                 ) : (
-                  // Default/Modern hero variant
                   <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
                     <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
                       isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
@@ -788,7 +904,7 @@ export default function ConversationalCopilotBuilder() {
                         Nossos Serviços
                       </button>
                       <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border ${previewTheme.btnOutline}`}>
-                        Contacto
+                        Fale Connosco
                       </button>
                     </div>
                   </div>
@@ -796,7 +912,7 @@ export default function ConversationalCopilotBuilder() {
 
                 {/* SERVICES SECTION */}
                 {features.includes("servicos") && (
-                  <div className="py-16 px-8 border-t border-white/5 max-w-4xl mx-auto space-y-8">
+                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-4xl mx-auto`}>
                     <div className="text-center space-y-1.5">
                       <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Nossos Serviços</h3>
                       <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soluções feitas para si</p>
@@ -806,8 +922,8 @@ export default function ConversationalCopilotBuilder() {
                         <div 
                           key={idx} 
                           className={`p-5 flex flex-col justify-between h-[150px] transition-all ${getBorderRadiusClass()} ${
-                            cardVariant === "minimalist" ? "border-slate-800 bg-transparent text-left" :
-                            cardVariant === "elevated" ? "bg-slate-900 border border-slate-800 shadow-md" :
+                            cardVariant === "minimal" ? "border-slate-800 bg-transparent text-left" :
+                            cardVariant === "elevated" ? "bg-slate-900 border border-slate-800 shadow-md hover:scale-[1.02]" :
                             previewTheme.card
                           } ${getShadowClass()}`}
                         >
@@ -824,7 +940,7 @@ export default function ConversationalCopilotBuilder() {
 
                 {/* GALLERY SECTION */}
                 {features.includes("galeria") && (
-                  <div className="py-16 px-8 border-t border-white/5 max-w-4xl mx-auto space-y-8">
+                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-4xl mx-auto`}>
                     <div className="text-center space-y-1.5">
                       <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Portfólio / Galeria</h3>
                       <p className="text-[10px] text-slate-500 uppercase tracking-wider">Nosso trabalho recente</p>
@@ -841,7 +957,7 @@ export default function ConversationalCopilotBuilder() {
 
                 {/* TESTIMONIALS SECTION */}
                 {features.includes("depoimentos") && (
-                  <div className="py-16 px-8 border-t border-white/5 max-w-3xl mx-auto space-y-8">
+                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-3xl mx-auto`}>
                     <div className="text-center space-y-1.5">
                       <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Depoimentos</h3>
                       <p className="text-[10px] text-slate-500 uppercase tracking-wider">O que dizem os clientes</p>
@@ -865,7 +981,7 @@ export default function ConversationalCopilotBuilder() {
 
                 {/* FAQ SECTION */}
                 {features.includes("faq") && (
-                  <div className="py-16 px-8 border-t border-white/5 max-w-3xl mx-auto space-y-6">
+                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-3xl mx-auto`}>
                     <h2 className="text-xl font-bold text-white text-center mb-6">Perguntas Frequentes</h2>
                     <div className="space-y-3">
                       {[
@@ -893,13 +1009,6 @@ export default function ConversationalCopilotBuilder() {
                           isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
                         }`}
                       />
-                      <input
-                        type="email"
-                        placeholder="Email"
-                        className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()} ${
-                          isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
-                        }`}
-                      />
                       <textarea
                         rows={3}
                         placeholder="Mensagem..."
@@ -921,12 +1030,25 @@ export default function ConversationalCopilotBuilder() {
                   </div>
                 )}
 
-                {/* Footer */}
-                <div className={`p-8 border-t text-center text-[10px] text-slate-500 select-none ${
-                  isLight ? "border-slate-200/60" : "border-white/5"
-                }`} suppressHydrationWarning>
-                  &copy; {new Date().getFullYear()} {brandName}. Desenvolvido com IA da MD Sites.
-                </div>
+                {/* Footer dynamic variants */}
+                {footerVariant === "newsletter" ? (
+                  <div className={`p-8 border-t space-y-4 text-center ${isLight ? "border-slate-200/60 bg-slate-100" : "border-white/5 bg-slate-950"}`}>
+                    <span className="text-[10px] uppercase font-bold text-brand-gold">Subscreva a nossa newsletter</span>
+                    <div className="flex max-w-xs mx-auto gap-1">
+                      <input type="email" placeholder="O seu email" className="bg-black/20 border border-white/10 rounded-lg p-2 text-[10px] flex-1 focus:outline-none" />
+                      <button className={`px-3 text-[10px] font-bold rounded-lg ${previewTheme.btnAccent}`}>Ok</button>
+                    </div>
+                    <div className="text-[9px] text-slate-500">
+                      &copy; {new Date().getFullYear()} {brandName}. MD Sites AI Designer.
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`p-8 border-t text-center text-[10px] text-slate-500 select-none ${
+                    isLight ? "border-slate-200/60" : "border-white/5"
+                  }`} suppressHydrationWarning>
+                    &copy; {new Date().getFullYear()} {brandName}. Desenvolvido com IA da MD Sites.
+                  </div>
+                )}
 
               </div>
 
