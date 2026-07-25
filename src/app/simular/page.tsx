@@ -37,6 +37,18 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import canvasConfetti from "canvas-confetti";
 
+// MD Sites Design Library imports
+import { themes, ThemeConfig } from "@/components/design-system/themes";
+import { 
+  NavbarSection, 
+  HeroSection, 
+  ServicesSection, 
+  GallerySection, 
+  FAQSection, 
+  TestimonialsSection, 
+  FooterSection 
+} from "@/components/design-system/sections";
+
 interface Message {
   sender: "ai" | "user";
   text: string;
@@ -62,8 +74,8 @@ export default function ConversationalCopilotBuilder() {
   const [description, setDescription] = useState("Descreve o teu negócio e veja a IA criar os conteúdos.");
   const [features, setFeatures] = useState<string[]>(["servicos", "contactos"]);
 
-  // Designer System layout states
-  const [brandStyle, setBrandStyle] = useState("default"); // apple, tesla, stripe, notion, linear, vercel, airbnb, default
+  // Designer System layout states (Design Library)
+  const [brandStyle, setBrandStyle] = useState("luxury"); // Maps to themes key
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
@@ -77,7 +89,7 @@ export default function ConversationalCopilotBuilder() {
   // Custom Code Injector States (Developer low-code widgets)
   const [customCSS, setCustomCSS] = useState("");
   const [customHTML, setCustomHTML] = useState("");
-  const [embedCode, setEmbedCode] = useState(""); // Iframe embeds (youtube, maps, typeform, stripe)
+  const [embedCode, setEmbedCode] = useState(""); // Iframe embeds
   const [globalHeaderScript, setGlobalHeaderScript] = useState("");
 
   const [isCompleted, setIsCompleted] = useState(false);
@@ -125,7 +137,7 @@ export default function ConversationalCopilotBuilder() {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas ou cores específicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site vermelho e preto super moderno'*\n• *'Faz um layout azul e branco inspirado na Apple'*\n• *'Quero um website preto e dourado de luxo'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nEstou ligado à **MD Sites Design Library (Arquitetura Base)**.\n\nAgora posso montar o teu site utilizando componentes oficiais e o tema que desejares. Experimenta:\n• *'Cria um site estilo Apple minimalista em tons claros'*\n• *'Quero um website estilo Ferrari moderno'*\n• *'Faz um layout SaaS no tema Stripe com cores azul e roxo'*\n\nPodes alternar livremente entre o **Copilot Chat**, o **Editor Visual** e a aba de **Código Low-Code** no painel lateral!",
         timestamp: new Date()
       }
     ]);
@@ -157,7 +169,7 @@ export default function ConversationalCopilotBuilder() {
               setPrimaryColor(parts[0] || "#d4af37");
               setSecondaryColor(parts[1] || "#0a0f1d");
               setIsLightMode(parts[2] === "true");
-              setBrandStyle(parts[3] || "default");
+              setBrandStyle(parts[3] || "luxury");
               setBorderRadius(parts[4] || "xl");
               setFontFamily(parts[5] || "sans");
               setShadowStyle(parts[6] || "glow");
@@ -248,30 +260,33 @@ export default function ConversationalCopilotBuilder() {
       detSecondary = "#090909";
     }
 
-    // 2. BRAND PRESETS ARCHITECTURE
+    // 2. BRAND PRESETS ARCHITECTURE & THEME ASSIGNMENT
     if (p.includes("apple")) {
       dStyle = "apple";
       detLight = true;
-      detPrimary = "#1d1d1f";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "none";
       dSpacing = "wide";
-      detectedDesc = "Website minimalista com foco em tipografia fina, grelha limpa e espaço em branco generoso.";
     } 
     else if (p.includes("tesla")) {
       dStyle = "tesla";
       detLight = false;
-      detSecondary = "#090909";
       dBorder = "md";
       dFont = "display";
       dShadow = "glow";
       dSpacing = "normal";
     }
+    else if (p.includes("ferrari")) {
+      dStyle = "ferrari";
+      detLight = false;
+      dBorder = "none";
+      dFont = "display";
+      dShadow = "glow";
+    }
     else if (p.includes("stripe")) {
       dStyle = "stripe";
       detLight = false;
-      detPrimary = "#6366f1";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "lg";
@@ -280,7 +295,6 @@ export default function ConversationalCopilotBuilder() {
     else if (p.includes("notion")) {
       dStyle = "notion";
       detLight = true;
-      detPrimary = "#000000";
       dBorder = "md";
       dFont = "sans";
       dShadow = "none";
@@ -289,7 +303,6 @@ export default function ConversationalCopilotBuilder() {
     else if (p.includes("linear")) {
       dStyle = "linear";
       detLight = false;
-      detSecondary = "#0b0c10";
       dBorder = "md";
       dFont = "mono";
       dShadow = "none";
@@ -298,12 +311,26 @@ export default function ConversationalCopilotBuilder() {
     else if (p.includes("vercel")) {
       dStyle = "vercel";
       detLight = false;
-      detSecondary = "#000000";
-      detPrimary = "#ffffff";
       dBorder = "none";
       dFont = "mono";
       dShadow = "none";
       dSpacing = "normal";
+    }
+    else if (p.includes("spotify")) {
+      dStyle = "spotify";
+      detLight = false;
+    }
+    else if (p.includes("netflix")) {
+      dStyle = "netflix";
+      detLight = false;
+    }
+    else if (p.includes("nature")) {
+      dStyle = "nature";
+      detLight = true;
+    }
+    else if (p.includes("startup")) {
+      dStyle = "startup";
+      detLight = true;
     }
 
     // 3. SECTORS & WIDGETS
@@ -316,6 +343,13 @@ export default function ConversationalCopilotBuilder() {
     if (p.includes("espaço") || p.includes("afasta")) dSpacing = "wide";
     if (p.includes("arredondado") || p.includes("redondo")) dBorder = "full";
     if (p.includes("quadrado") || p.includes("reto")) dBorder = "none";
+
+    // Set matching colors based on theme if user didn't specify manual colors in prompt
+    if (foundColors.length === 0 && themes[dStyle]) {
+      detPrimary = themes[dStyle].primary;
+      detSecondary = themes[dStyle].secondary;
+      detLight = themes[dStyle].isLight;
+    }
 
     return {
       name: detectedName,
@@ -342,9 +376,9 @@ export default function ConversationalCopilotBuilder() {
 
     const thoughts = [
       "❯ Analisando linguagem natural...",
-      "❯ Extraindo parâmetros cromáticos...",
-      "❯ Escolhendo presets estruturais do Design System...",
-      "❯ A gravar definições de marca no Supabase..."
+      "❯ Selecionando Componentes da Design Library...",
+      "❯ Ajustando tokens estruturais e fontes...",
+      "❯ A gravar definições no Supabase..."
     ];
 
     let tIdx = 0;
@@ -379,7 +413,7 @@ export default function ConversationalCopilotBuilder() {
 
       setIsCompleted(true);
 
-      // Save to Supabase (serializing layout config parameter)
+      // Save to Supabase
       await handleSyncToSupabase(
         design.name,
         design.category,
@@ -399,7 +433,7 @@ export default function ConversationalCopilotBuilder() {
         ...prev,
         {
           sender: "ai",
-          text: `Entendido! Reestruturei por completo o website de **${design.name}** com as tuas cores favoritas.\n\nFicha Técnica do Design System:\n✓ Cor Principal: **${design.primaryColor}**\n✓ Modo Escuro/Claro: **${design.isLightMode ? "Claro" : "Escuro"}**\n✓ Preset de Layout: **${design.style.toUpperCase()}**\n✓ Bordas: **${design.border}**\n\nQual o próximo passo de design?`,
+          text: `Entendido! Website **${design.name}** atualizado com sucesso seguindo a Design Library com o tema **${design.style.toUpperCase()}**.\n\nComponentes Montados:\n✓ Top Navigation (Navbar)\n✓ Hero Showcase (Hero)\n✓ Grelha Dinâmica (Serviços)\n✓ Rodapé Modular (Footer)\n\nPodes continuar a ajustar visualmente ou injetar código customizado.`,
           timestamp: new Date()
         }
       ]);
@@ -429,7 +463,6 @@ export default function ConversationalCopilotBuilder() {
     spacing = spacingScale, 
     activeFeats = features
   ) => {
-    // Serialize design vars including custom code widgets
     const serializedPalette = `${prim}:${seco}:${light}:${style}:${border}:${font}:${shadow}:${spacing}:${encodeURIComponent(customCSS)}:${encodeURIComponent(customHTML)}:${encodeURIComponent(embedCode)}`;
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -457,10 +490,10 @@ export default function ConversationalCopilotBuilder() {
 
   const handleSurpriseMe = () => {
     const creativeIdeas = [
-      "Quero um website rosa e roxo estilo Notion.",
-      "Cria um site laranja e preto estilo Tesla.",
-      "Quero um site azul e branco estilo Stripe.",
-      "Faz um site amarelo e preto estilo Linear."
+      "Quero um website estilo Notion minimalista.",
+      "Cria um site no tema Tesla futurista.",
+      "Quero um site no tema Stripe com cores rosa e roxo.",
+      "Faz um site no tema Ferrari desportivo."
     ];
     const randomPrompt = creativeIdeas[Math.floor(Math.random() * creativeIdeas.length)];
     handleSend(randomPrompt);
@@ -492,92 +525,27 @@ export default function ConversationalCopilotBuilder() {
     }
   };
 
-  // Resolve dynamic colors objects to bind inline style tags
-  const getThemeClasses = () => {
-    const contrastColor = (hex: string) => {
-      if (hex === "#ffffff" || hex === "#f8fafc") return "#0f172a";
-      return "#ffffff";
-    };
-
-    const isWhiteAccent = primaryColor === "#ffffff";
-    const resolvedBg = isLightMode ? "#f8fafc" : (secondaryColor === "#ffffff" ? "#0a0f1d" : secondaryColor);
-
-    return {
-      bgStyle: { backgroundColor: resolvedBg },
-      headerStyle: { 
-        backgroundColor: isLightMode ? "rgba(255, 255, 255, 0.85)" : "rgba(3, 7, 18, 0.4)",
-        borderColor: isLightMode ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.05)"
-      },
-      cardStyle: { 
-        backgroundColor: isLightMode ? "#ffffff" : "rgba(17, 24, 39, 0.8)",
-        borderColor: isLightMode ? "rgba(0, 0, 0, 0.08)" : `${primaryColor}20`,
-        color: isLightMode ? "#1f2937" : "#e5e7eb"
-      },
-      textStyle: { color: isWhiteAccent ? "#e2e8f0" : primaryColor },
-      btnStyle: { 
-        backgroundColor: primaryColor, 
-        color: contrastColor(primaryColor)
-      },
-      btnOutlineStyle: { 
-        borderColor: `${primaryColor}40`, 
-        color: isWhiteAccent ? "#ffffff" : primaryColor
-      }
-    };
-  };
-
-  const previewTheme = getThemeClasses();
-
-  const getBorderRadiusClass = () => {
-    if (brandStyle === "vercel") return "rounded-none";
-    if (brandStyle === "notion") return "rounded";
+  // Construct active theme configurations
+  const getActiveTheme = (): ThemeConfig => {
+    const defaultTheme = themes[brandStyle] || themes.luxury;
     
-    switch (borderRadius) {
-      case "none": return "rounded-none";
-      case "md": return "rounded-md";
-      case "full": return "rounded-full";
-      case "xl":
-      default:
-        return "rounded-2xl";
-    }
+    // Merge user custom manual colors if they overrides values
+    return {
+      ...defaultTheme,
+      primary: primaryColor,
+      secondary: secondaryColor,
+      surface: isLightMode ? "#ffffff" : "#111827",
+      background: isLightMode ? "#f8fafc" : secondaryColor,
+      border: isLightMode ? "rgba(0, 0, 0, 0.08)" : `${primaryColor}20`,
+      textPrimary: isLightMode ? "#0f172a" : "#ffffff",
+      textSecondary: isLightMode ? "#475569" : "#9ca3af",
+      isLight: isLightMode
+    };
   };
 
-  const getFontFamilyClass = () => {
-    if (brandStyle === "vercel" || brandStyle === "linear") return "font-mono";
-    switch (fontFamily) {
-      case "mono": return "font-mono";
-      case "serif": return "font-serif";
-      case "display": return "font-display";
-      case "sans":
-      default:
-        return "font-sans";
-    }
-  };
-
-  const getShadowClass = () => {
-    if (brandStyle === "notion" || brandStyle === "vercel") return "shadow-none";
-    switch (shadowStyle) {
-      case "none": return "shadow-none border-white/5";
-      case "sm": return "shadow-sm border-white/5";
-      case "lg": return "shadow-2xl border-white/10";
-      case "glow":
-      default:
-        return `shadow-[0_0_22px_${primaryColor}25] border-white/5`;
-    }
-  };
-
-  const getSpacingClass = () => {
-    switch (spacingScale) {
-      case "compact": return "py-10 space-y-4";
-      case "wide": return "py-24 space-y-12";
-      case "normal":
-      default:
-        return "py-16 space-y-8";
-    }
-  };
+  const activeTheme = getActiveTheme();
 
   const getGeneratedContent = () => {
-    let heroTitle = `Soluções inteligentes para ${brandName}`;
-    let heroSubtitle = description;
     let services = [
       { name: "Consultoria Premium", desc: "Aconselhamento estratégico personalizado para otimizar os seus resultados." },
       { name: "Gestão Integrada", desc: "Tratamos dos processos complexos para que se foque no que realmente importa." },
@@ -585,16 +553,12 @@ export default function ConversationalCopilotBuilder() {
     ];
 
     if (category.toLowerCase().includes("restaurante") || category.toLowerCase().includes("gastronomia")) {
-      heroTitle = `Bem-vindo ao ${brandName}`;
-      heroSubtitle = `Uma experiência gastronómica inesquecível de sabores autênticos. ${description}`;
       services = [
         { name: "Menu de Degustação", desc: "Pratos de autor confecionados com ingredientes frescos e locais." },
         { name: "Eventos Privados", desc: "Espaço sofisticado para celebrar momentos marcantes com requinte." },
         { name: "Serviço de Reservas", desc: "Garanta a sua mesa com facilidade e desfrute de um atendimento exclusivo." }
       ];
     } else if (category.toLowerCase().includes("tecnologia") || category.toLowerCase().includes("saas")) {
-      heroTitle = `Acelere o seu negócio com ${brandName}`;
-      heroSubtitle = `A tecnologia que simplifica o seu fluxo de trabalho de forma automatizada. ${description}`;
       services = [
         { name: "Automação Avançada", desc: "Elimine tarefas manuais repetitivas e ganhe horas de produtividade diária." },
         { name: "Painel de Métricas", desc: "Dados consolidados em tempo real para tomada de decisões estratégicas." },
@@ -602,16 +566,30 @@ export default function ConversationalCopilotBuilder() {
       ];
     }
 
-    return { heroTitle, heroSubtitle, services };
+    return {
+      brandName,
+      category,
+      description,
+      services
+    };
   };
 
-  const previewContent = getGeneratedContent();
-  const isLight = isLightMode;
+  const currentContent = getGeneratedContent();
+
+  const sectionProps = {
+    theme: activeTheme,
+    borderRadius,
+    fontFamily,
+    shadow: shadowStyle,
+    spacing: spacingScale,
+    content: currentContent,
+    features
+  };
 
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
       
-      {/* Dynamic Style tags for developers low-code style overrides */}
+      {/* Dynamic Style tags for developer low-code style overrides */}
       {customCSS && (
         <style dangerouslySetInnerHTML={{ __html: customCSS }} />
       )}
@@ -644,10 +622,10 @@ export default function ConversationalCopilotBuilder() {
         />
       </header>
 
-      {/* Three Tabs Controller Panel */}
+      {/* Main split dashboard view */}
       <div className="flex-1 flex overflow-hidden">
         
-        {/* Left Column: Switchable visual panels */}
+        {/* Left Column: Editor controls */}
         <div className="w-full lg:w-[480px] border-r border-slate-800/80 flex flex-col bg-slate-950/40 backdrop-blur-md relative z-20 flex-shrink-0">
           
           {/* Header tab controller */}
@@ -744,7 +722,7 @@ export default function ConversationalCopilotBuilder() {
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Peça qualquer cor (Ex: 'Quero rosa e roxo')"
+                    placeholder="Pede modificações (Ex: 'Muda o tema para Apple')"
                     className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
                   />
                   <button
@@ -769,17 +747,23 @@ export default function ConversationalCopilotBuilder() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Preset de Layout</label>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Tema base (Design Library)</label>
                     <select
                       value={brandStyle}
                       onChange={(e) => {
                         setBrandStyle(e.target.value);
-                        handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, e.target.value);
+                        // Pre-populate theme color values
+                        if (themes[e.target.value]) {
+                          setPrimaryColor(themes[e.target.value].primary);
+                          setSecondaryColor(themes[e.target.value].secondary);
+                          setIsLightMode(themes[e.target.value].isLight);
+                        }
+                        handleSyncToSupabase(brandName, category, description, themes[e.target.value]?.primary, themes[e.target.value]?.secondary, themes[e.target.value]?.isLight, e.target.value);
                       }}
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none"
                     >
-                      {["default", "apple", "tesla", "stripe", "notion", "linear", "vercel", "airbnb"].map(st => (
-                        <option key={st} value={st}>{st.toUpperCase()}</option>
+                      {Object.keys(themes).map(th => (
+                        <option key={th} value={th}>{th.toUpperCase()}</option>
                       ))}
                     </select>
                   </div>
@@ -836,7 +820,7 @@ export default function ConversationalCopilotBuilder() {
                 {/* Accent and BG Color Pickers */}
                 <div className="grid grid-cols-2 gap-4 pt-1">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Cor de Acento (Hex)</label>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Cor Principal (Hex)</label>
                     <div className="flex gap-1.5">
                       <input 
                         type="color" 
@@ -859,7 +843,7 @@ export default function ConversationalCopilotBuilder() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-455 uppercase block mb-1">Cor de Fundo (Hex)</label>
+                    <label className="text-[10px] font-bold text-slate-455 uppercase block mb-1">Cor Secundária (Hex)</label>
                     <div className="flex gap-1.5">
                       <input 
                         type="color" 
@@ -912,21 +896,18 @@ export default function ConversationalCopilotBuilder() {
                         <button 
                           onClick={() => moveFeature(idx, "up")}
                           className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white"
-                          title="Mover para Cima"
                         >
                           <ArrowUp className="w-3.5 h-3.5" />
                         </button>
                         <button 
                           onClick={() => moveFeature(idx, "down")}
                           className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white"
-                          title="Mover para Baixo"
                         >
                           <ArrowDown className="w-3.5 h-3.5" />
                         </button>
                         <button 
                           onClick={() => removeFeature(feat)}
                           className="p-1 hover:bg-rose-500/10 rounded text-rose-400"
-                          title="Remover Secção"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -941,11 +922,11 @@ export default function ConversationalCopilotBuilder() {
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       { key: "servicos", name: "Serviços" },
-                      { key: "galeria", name: "Galeria / Portfolio" },
+                      { key: "galeria", name: "Galeria" },
                       { key: "faq", name: "Perguntas (FAQ)" },
                       { key: "depoimentos", name: "Testemunhos" },
                       { key: "contactos", name: "Contactos" },
-                      { key: "whatsapp", name: "Botão WhatsApp" }
+                      { key: "whatsapp", name: "WhatsApp Widget" }
                     ].map((item) => (
                       <button
                         key={item.key}
@@ -970,13 +951,13 @@ export default function ConversationalCopilotBuilder() {
               <div className="space-y-1">
                 <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest border-b border-slate-850 pb-1">Low-Code & Código Custom</h3>
                 <p className="text-[10px] text-slate-500 leading-relaxed">
-                  Adiciona código HTML, CSS ou JavaScript. Podes colar scripts de terceiros ou Iframe Embeds (YouTube, Maps, etc.).
+                  Adiciona scripts externos, estilos CSS globais ou componentes criados a HTML puro.
                 </p>
               </div>
 
               {/* Dynamic CSS styles box */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Injetar CSS Customizado (Global)</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Injetar CSS Customizado</label>
                 <textarea
                   rows={6}
                   value={customCSS}
@@ -984,14 +965,14 @@ export default function ConversationalCopilotBuilder() {
                     setCustomCSS(e.target.value);
                     handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, features);
                   }}
-                  placeholder="Ex: .services-card { transform: rotate(1deg); } \n h1 { color: #facc15 !important; }"
-                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                  placeholder="Ex: .services-card { border-radius: 50px; }"
+                  className="w-full bg-[#050811] border border-slate-855 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
                 />
               </div>
 
               {/* Iframe widget box */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Inserir Embed Code (Iframe / Widgets)</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Inserir Embed Code (Iframe)</label>
                 <textarea
                   rows={4}
                   value={embedCode}
@@ -999,8 +980,8 @@ export default function ConversationalCopilotBuilder() {
                     setEmbedCode(e.target.value);
                     handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, features);
                   }}
-                  placeholder="Cola aqui qualquer iframe de YouTube, Spotify, Google Maps, Calendly, etc."
-                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                  placeholder="Cola aqui qualquer iframe de YouTube, Spotify, Google Maps, etc."
+                  className="w-full bg-[#050811] border border-slate-855 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
                 />
               </div>
 
@@ -1015,19 +996,7 @@ export default function ConversationalCopilotBuilder() {
                     handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, features);
                   }}
                   placeholder="Ex: <div class='p-4 bg-emerald-500/10 border rounded'>Olá do Programador!</div>"
-                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
-                />
-              </div>
-
-              {/* Global Header Script box */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Scripts Adicionais no Head (Google Analytics / Pixel)</label>
-                <textarea
-                  rows={3}
-                  value={globalHeaderScript}
-                  onChange={(e) => setGlobalHeaderScript(e.target.value)}
-                  placeholder="Ex: <script src='...'></script>"
-                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                  className="w-full bg-[#050811] border border-slate-855 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
                 />
               </div>
 
@@ -1081,334 +1050,56 @@ export default function ConversationalCopilotBuilder() {
               
               {/* Dynamic Live website page */}
               <div 
-                className={`h-full overflow-y-auto relative transition-all duration-500 ${
-                  isLight ? "text-slate-800" : "text-slate-300"
-                } ${getFontFamilyClass()} flex`}
-                style={previewTheme.bgStyle}
+                className="h-full overflow-y-auto relative transition-all duration-500 flex flex-col justify-between"
+                style={{ backgroundColor: activeTheme.background }}
               >
-
-                {/* NOTION SIDEBAR VARIANT */}
-                {brandStyle === "notion" && previewMode === "desktop" && (
-                  <div className="w-52 h-full bg-[#f7f7f5] border-r border-slate-200/80 p-4 space-y-4 text-xs text-slate-500 font-semibold select-none flex-shrink-0">
-                    <div className="text-slate-800 font-bold flex items-center gap-1.5">
-                      <span>📝</span> {brandName}
-                    </div>
-                    <div className="space-y-1.5 pt-2">
-                      <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">🏠 Página Inicial</div>
-                      {features.includes("servicos") && <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">⚙️ Serviços</div>}
-                      {features.includes("galeria") && <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">🖼️ Galeria</div>}
-                      {features.includes("faq") && <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">❓ Perguntas</div>}
-                    </div>
-                  </div>
-                )}
-
-                {/* MAIN PAGE CONTAINER */}
-                <div className="flex-1 flex flex-col justify-between min-h-full">
+                <div>
                   
-                  <div>
-                    {/* DYNAMIC HEADER VARIANT */}
-                    {brandStyle === "vercel" ? (
-                      <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black select-none">
-                        <div className="font-mono text-white font-extrabold flex items-center gap-2">
-                          <span className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-white" />
-                          {brandName.toUpperCase()}
-                        </div>
-                        <div className="flex items-center gap-6 text-xs text-slate-400 font-semibold">
-                          <span className="hover:text-white cursor-pointer transition-colors">INÍCIO</span>
-                          {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">SERVIÇOS</span>}
-                        </div>
-                      </div>
-                    ) : brandStyle === "notion" ? (
-                      previewMode !== "desktop" ? (
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200/60 bg-[#FBFBFA]">
-                          <span className="font-bold text-slate-800">📝 {brandName}</span>
-                          <span className="text-xs text-slate-500 font-bold">Menu ➔</span>
-                        </div>
-                      ) : null
-                    ) : brandStyle === "stripe" ? (
-                      <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 text-white p-6 pb-20 select-none">
-                        <div className="flex items-center justify-between max-w-4xl mx-auto">
-                          <div className="font-extrabold text-lg tracking-tight">{brandName}</div>
-                          <div className="flex items-center gap-6 text-xs font-semibold">
-                            <span className="hover:opacity-80 cursor-pointer">Início</span>
-                            {features.includes("servicos") && <span className="hover:opacity-80 cursor-pointer">Serviços</span>}
-                          </div>
-                          <button className="bg-white/10 hover:bg-white/20 border border-white/20 px-3.5 py-1.5 rounded-full text-[10px] font-bold">
-                            Começar ➔
-                          </button>
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-[#0f172a] transform skew-y-1 origin-bottom-left" />
-                      </div>
-                    ) : (
-                      /* Classic Header */
+                  {/* Navbar Section */}
+                  <NavbarSection {...sectionProps} />
+
+                  {/* Dynamic sections ordered layout list */}
+                  {features.map((feat) => {
+                    if (feat === "servicos") return <ServicesSection key={feat} {...sectionProps} />;
+                    if (feat === "galeria") return <GallerySection key={feat} {...sectionProps} />;
+                    if (feat === "faq") return <FAQSection key={feat} {...sectionProps} />;
+                    if (feat === "depoimentos") return <TestimonialsSection key={feat} {...sectionProps} />;
+                    return null;
+                  })}
+
+                  {/* Dynamic low-code HTML components */}
+                  {customHTML && (
+                    <div 
+                      className="py-12 px-8 max-w-4xl mx-auto border-t"
+                      style={{ borderColor: activeTheme.border }}
+                      dangerouslySetInnerHTML={{ __html: customHTML }}
+                    />
+                  )}
+
+                  {/* Dynamic Iframe Embeds */}
+                  {embedCode && (
+                    <div className="py-12 px-8 max-w-4xl mx-auto text-center border-t" style={{ borderColor: activeTheme.border }}>
                       <div 
-                        className="flex items-center justify-between p-6 border-b select-none"
-                        style={previewTheme.headerStyle}
-                      >
-                        <div className="font-bold text-lg flex items-center gap-1.5 font-display select-none">
-                          <span 
-                            className="w-2.5 h-2.5 rounded-full animate-pulse" 
-                            style={{ backgroundColor: primaryColor }}
-                          />
-                          {brandName}
-                        </div>
-                        <div className="flex items-center gap-6 text-xs font-semibold select-none">
-                          <span className="hover:opacity-80 cursor-pointer transition-colors">Início</span>
-                          {features.includes("servicos") && <span className="hover:opacity-80 cursor-pointer transition-colors">Serviços</span>}
-                          {features.includes("galeria") && <span className="hover:opacity-80 cursor-pointer transition-colors">Galeria</span>}
-                          {features.includes("depoimentos") && <span className="hover:opacity-80 cursor-pointer transition-colors">Clientes</span>}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* DYNAMIC HERO VARIANT */}
-                    {brandStyle === "notion" ? (
-                      <div className="py-12 px-10 text-left space-y-6 max-w-2xl">
-                        <div className="text-4xl">📝</div>
-                        <h1 className="text-3.5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                          {previewContent.heroTitle}
-                        </h1>
-                        <p className="text-xs text-slate-500 leading-relaxed max-w-lg">
-                          {previewContent.heroSubtitle}
-                        </p>
-                        <div className="pt-2">
-                          <button className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold shadow-sm">
-                            Adicionar Nota / Começar
-                          </button>
-                        </div>
-                      </div>
-                    ) : brandStyle === "linear" ? (
-                      <div className="py-20 px-8 text-center space-y-6 max-w-3xl mx-auto">
-                        <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[9px] font-mono border border-slate-850 bg-[#12131a]" style={previewTheme.textStyle}>
-                          <span>⚙️</span> Linear Style Preview
-                        </div>
-                        <h1 className="text-4xl font-extrabold tracking-tight text-white uppercase font-mono">
-                          {previewContent.heroTitle}
-                        </h1>
-                        <p className="text-xs text-slate-400 font-mono leading-relaxed max-w-md mx-auto">
-                          {previewContent.heroSubtitle}
-                        </p>
-                        <div className="flex items-center justify-center gap-3 pt-2">
-                          <button className="px-4 py-2.5 rounded bg-[#5c6bc0] hover:bg-[#3f51b5] text-white border border-[#7986cb] text-xs font-bold font-mono">
-                            Ver Projeto ➔
-                          </button>
-                          <button className="px-4 py-2.5 rounded border border-slate-850 hover:bg-slate-900 text-white text-xs font-mono">
-                            Keymap
-                          </button>
-                        </div>
-                      </div>
-                    ) : brandStyle === "vercel" ? (
-                      <div className="py-24 px-8 text-center space-y-8 max-w-3xl mx-auto bg-black">
-                        <h1 className="text-5xl font-extrabold tracking-tighter text-white uppercase select-none">
-                          {previewContent.heroTitle}
-                        </h1>
-                        <p className="text-xs text-slate-400 leading-relaxed font-mono max-w-md mx-auto">
-                          {previewContent.heroSubtitle}
-                        </p>
-                        <div className="flex items-center justify-center gap-4">
-                          <button className="px-6 py-3 bg-white hover:bg-slate-100 text-black text-xs font-bold uppercase">
-                            Deploy Now
-                          </button>
-                          <button className="px-6 py-3 border border-white/20 hover:bg-white/5 text-white text-xs font-bold uppercase">
-                            Read Docs
-                          </button>
-                        </div>
-                      </div>
-                    ) : brandStyle === "stripe" ? (
-                      <div className="py-16 px-8 text-left space-y-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                        <div className="space-y-6">
-                          <h1 className="text-3.5xl font-extrabold leading-tight text-white tracking-tight">
-                            {previewContent.heroTitle}
-                          </h1>
-                          <p className="text-xs leading-relaxed text-slate-350">
-                            {previewContent.heroSubtitle}
-                          </p>
-                          <button className="px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:shadow-lg text-white font-bold text-xs flex items-center gap-1">
-                            Começar agora <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <div className="w-full h-48 bg-[#1e293b]/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <span className="text-[10px] text-slate-400 font-bold">Receitas / Vendas</span>
-                            <span className="text-[9px] text-[#10b981] font-bold">+24%</span>
-                          </div>
-                          <div className="h-24 flex items-end justify-between gap-1 pt-4">
-                            {[40, 60, 45, 90, 80, 100].map((h, i) => (
-                              <div key={i} className="bg-indigo-500 rounded-t w-full" style={{ height: `${h}%` }} />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Default Hero */
-                      <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
-                        <div 
-                          className="inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold bg-black/10 border border-white/5"
-                          style={previewTheme.textStyle}
-                        >
-                          <Sparkles className="w-3 h-3" />
-                          {category}
-                        </div>
-                        <h1 className="text-3.5xl font-display font-extrabold leading-tight">
-                          {previewContent.heroTitle}
-                        </h1>
-                        <p className="text-xs leading-relaxed max-w-md mx-auto">
-                          {previewContent.heroSubtitle}
-                        </p>
-                        <div className="flex items-center justify-center gap-3">
-                          <button 
-                            className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold`}
-                            style={previewTheme.btnStyle}
-                          >
-                            Nossos Serviços
-                          </button>
-                          <button 
-                            className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border`}
-                            style={previewTheme.btnOutlineStyle}
-                          >
-                            Fale Connosco
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* DYNAMIC LOW-CODE EMBED COMPONENT PANEL */}
-                    {embedCode && (
-                      <div className="py-12 px-8 max-w-4xl mx-auto text-center border-t border-white/5">
-                        <div 
-                          className="w-full flex items-center justify-center overflow-hidden" 
-                          dangerouslySetInnerHTML={{ __html: embedCode }}
-                        />
-                      </div>
-                    )}
-
-                    {/* SERVICES SECTION */}
-                    {features.includes("servicos") && (
-                      <div className={`${getSpacingClass()} px-8 border-t max-w-4xl mx-auto`}>
-                        <div className="text-center space-y-1.5">
-                          <h3 className="text-xl font-bold">Nossos Serviços</h3>
-                          <p className="text-[10px] text-slate-505 uppercase tracking-wider">Soluções feitas para si</p>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {previewContent.services.map((srv, idx) => (
-                            <div 
-                              key={idx} 
-                              className={`p-5 flex flex-col justify-between h-[150px] transition-all ${getBorderRadiusClass()} ${
-                                brandStyle === "notion" ? "bg-transparent border border-slate-200/80 shadow-none text-slate-800" :
-                                brandStyle === "linear" ? "bg-[#12131a] border border-slate-800/85 font-mono shadow-none text-slate-350" :
-                                brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none shadow-none text-white" :
-                                ""
-                              } ${getShadowClass()}`}
-                              style={brandStyle !== "notion" && brandStyle !== "linear" && brandStyle !== "vercel" ? previewTheme.cardStyle : undefined}
-                            >
-                              <div className="space-y-1.5">
-                                <h4 className="text-xs font-bold">{srv.name}</h4>
-                                <p className="text-[10px] text-slate-450 leading-relaxed">{srv.desc}</p>
-                              </div>
-                              <span className="text-[10px] font-bold cursor-pointer" style={previewTheme.textStyle}>➔ Saber mais</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* GALLERY SECTION */}
-                    {features.includes("galeria") && (
-                      <div className={`${getSpacingClass()} px-8 border-t max-w-4xl mx-auto`}>
-                        <div className="text-center space-y-1.5">
-                          <h3 className="text-xl font-bold">Portfólio / Galeria</h3>
-                          <p className="text-[10px] text-slate-505 uppercase tracking-wider">Nosso trabalho recente</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                          {[1, 2, 3].map(i => (
-                            <div 
-                              key={i} 
-                              className={`aspect-video flex items-center justify-center text-[10px] border ${getBorderRadiusClass()} ${getShadowClass()}`}
-                              style={brandStyle !== "notion" && brandStyle !== "linear" && brandStyle !== "vercel" ? previewTheme.cardStyle : undefined}
-                            >
-                              Imagem {i}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* LOW-CODE DYNAMIC HTML SECTION */}
-                    {customHTML && (
-                      <div 
-                        className="py-12 px-8 max-w-4xl mx-auto border-t border-white/5"
-                        dangerouslySetInnerHTML={{ __html: customHTML }}
+                        className="w-full flex items-center justify-center overflow-hidden" 
+                        dangerouslySetInnerHTML={{ __html: embedCode }}
                       />
-                    )}
-
-                    {/* FAQ SECTION */}
-                    {features.includes("faq") && (
-                      <div className={`${getSpacingClass()} px-8 border-t max-w-3xl mx-auto`}>
-                        <h2 className="text-xl font-bold text-center mb-6">Perguntas Frequentes</h2>
-                        <div className="space-y-3">
-                          {[
-                            { q: "Quais são os vossos prazos de entrega?", a: "Dependendo da dimensão do projeto, tipicamente realizamos a entrega final num prazo de 3 a 7 dias úteis." },
-                            { q: "Posso solicitar alterações após a publicação?", a: "Sim, suportamos facilidade de alteração e modificações continuas a qualquer momento." }
-                          ].map((faq, fi) => (
-                            <div 
-                              key={fi} 
-                              className={`p-4 border ${getBorderRadiusClass()} ${getShadowClass()}`}
-                              style={brandStyle !== "notion" && brandStyle !== "linear" && brandStyle !== "vercel" ? previewTheme.cardStyle : undefined}
-                            >
-                              <h4 className="text-xs font-bold mb-1.5">{faq.q}</h4>
-                              <p className="text-[10px] text-slate-455 leading-relaxed">{faq.a}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* CONTACT SECTION */}
-                    {features.includes("contactos") && (
-                      <div className="py-16 px-8 border-t max-w-md mx-auto space-y-6">
-                        <h2 className="text-xl font-bold text-center">Contacte-nos</h2>
-                        <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                          <input
-                            type="text"
-                            placeholder="Nome"
-                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()}`}
-                            style={{ borderColor: `${primaryColor}20`, color: isLight ? "#1f2937" : "#ffffff" }}
-                          />
-                          <textarea
-                            rows={3}
-                            placeholder="Mensagem..."
-                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none resize-none ${getBorderRadiusClass()}`}
-                            style={{ borderColor: `${primaryColor}20`, color: isLight ? "#1f2937" : "#ffffff" }}
-                          />
-                          <button 
-                            className={`w-full py-2.5 text-xs font-bold ${getBorderRadiusClass()}`}
-                            style={previewTheme.btnStyle}
-                          >
-                            Enviar Mensagem
-                          </button>
-                        </form>
-                      </div>
-                    )}
-
-                  </div>
-
-                  {/* WhatsApp Widget Render */}
-                  {features.includes("whatsapp") && (
-                    <div className="absolute bottom-6 right-6 z-25 flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl cursor-pointer hover:scale-105 transition-all">
-                      <MessageSquare className="w-6 h-6 fill-white" />
                     </div>
                   )}
 
-                  {/* Footer */}
-                  <div 
-                    className="p-8 border-t text-center text-[10px] text-slate-500 select-none"
-                    style={{ borderColor: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.05)" }}
-                    suppressHydrationWarning
-                  >
-                    &copy; {new Date().getFullYear()} {brandName}. Desenvolvido com IA da MD Sites.
-                  </div>
+                  {/* Standard Hero fallback representation */}
+                  {features.length === 0 && <HeroSection {...sectionProps} />}
 
                 </div>
+
+                {/* Footer Section */}
+                <FooterSection {...sectionProps} />
+
+                {/* WhatsApp button */}
+                {features.includes("whatsapp") && (
+                  <div className="absolute bottom-6 right-6 z-25 flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl cursor-pointer hover:scale-105 transition-all">
+                    <MessageSquare className="w-6 h-6 fill-white" />
+                  </div>
+                )}
 
               </div>
 
