@@ -52,23 +52,64 @@ export default function ConversationalCopilotBuilder() {
 
   // Designer System states (Copilot v4.0+ Architectural Layout Selector)
   const [brandStyle, setBrandStyle] = useState("default"); // apple, tesla, stripe, notion, linear, vercel, airbnb, default
-  const [palette, setPalette] = useState("blue-gold"); // blue-gold, indigo-purple, emerald-dark, mono-light, red, blue-white, black-gold, red-black
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
   const [spacingScale, setSpacingScale] = useState("normal"); // compact, normal, wide
+
+  // Dynamic Color Engine States (Supports ANY hex/rgb color combo)
+  const [primaryColor, setPrimaryColor] = useState("#d4af37"); // Accent color
+  const [secondaryColor, setSecondaryColor] = useState("#0a0f1d"); // Background color
+  const [isLightMode, setIsLightMode] = useState(false);
 
   const [isCompleted, setIsCompleted] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Colors Portuguese & English Map
+  const colorMap: any = {
+    azul: "#3b82f6",
+    branco: "#ffffff",
+    branca: "#ffffff",
+    preto: "#090909",
+    preta: "#090909",
+    dourado: "#d4af37",
+    dourada: "#d4af37",
+    ouro: "#d4af37",
+    vermelho: "#ef4444",
+    vermelha: "#ef4444",
+    verde: "#10b981",
+    esmeralda: "#10b981",
+    roxo: "#8b5cf6",
+    roxa: "#8b5cf6",
+    rosa: "#ec4899",
+    laranja: "#f97316",
+    amarelo: "#eab308",
+    amarela: "#eab308",
+    cinza: "#6b7280",
+    cinzento: "#6b7280",
+    castanho: "#78350f",
+    marrom: "#78350f",
+    blue: "#3b82f6",
+    white: "#ffffff",
+    black: "#090909",
+    gold: "#d4af37",
+    red: "#ef4444",
+    green: "#10b981",
+    purple: "#8b5cf6",
+    pink: "#ec4899",
+    orange: "#f97316",
+    yellow: "#eab308",
+    gray: "#6b7280"
+  };
+
   // Initial Welcome
   useEffect(() => {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas ou cores específicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site vermelho e preto super moderno'*\n• *'Faz um layout azul e branco inspirado na Apple'*\n• *'Quero um website preto e dourado de luxo'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu designer UI/UX pessoal. Podes escolher **qualquer cor ou combinação de cores** do mundo (ex: 'Quero um site rosa e roxo', 'Cria um site azul e branco', 'Faz um design preto e dourado de luxo').\n\nEu ajusto o Design System inteiro para refletir as tuas cores!",
         timestamp: new Date()
       }
     ]);
@@ -97,21 +138,23 @@ export default function ConversationalCopilotBuilder() {
             // Deserialize complex design styles from palette column
             const parts = data.palette.split(":");
             if (parts.length > 1) {
-              setPalette(parts[0]);
-              setBrandStyle(parts[1] || "default");
-              setBorderRadius(parts[2] || "xl");
-              setFontFamily(parts[3] || "sans");
-              setShadowStyle(parts[4] || "glow");
-              setSpacingScale(parts[5] || "normal");
+              setPrimaryColor(parts[0] || "#d4af37");
+              setSecondaryColor(parts[1] || "#0a0f1d");
+              setIsLightMode(parts[2] === "true");
+              setBrandStyle(parts[3] || "default");
+              setBorderRadius(parts[4] || "xl");
+              setFontFamily(parts[5] || "sans");
+              setShadowStyle(parts[6] || "glow");
+              setSpacingScale(parts[7] || "normal");
             } else {
-              setPalette(data.palette);
+              setPrimaryColor("#d4af37");
             }
 
             setMessages(prev => [
               ...prev,
               {
                 sender: "ai",
-                text: `Carreguei com sucesso o website **${data.name}**. Que modificações de design ou novas secções gostarias que eu aplicasse no Design System hoje?`,
+                text: `Carreguei com sucesso o website **${data.name}**. Que modificações de design ou novas cores gostarias que eu aplicasse no Design System hoje?`,
                 timestamp: new Date()
               }
             ]);
@@ -127,15 +170,19 @@ export default function ConversationalCopilotBuilder() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, aiTyping]);
 
-  // AI Prompt Parser (Architectural Layout Presets)
+  // AI Prompt Parser (Architectural Layout Presets & ANY Color Combination)
   const interpretUserPrompt = (prompt: string) => {
     const p = prompt.toLowerCase();
     
     let detectedCat = category;
     let detectedDesc = description;
     let detectedName = brandName;
-    let detectedPalette = palette;
     let detectedFeatures = [...features];
+
+    // Colors dynamic setup
+    let detPrimary = primaryColor;
+    let detSecondary = secondaryColor;
+    let detLight = isLightMode;
 
     // Design layout defaults
     let dStyle = brandStyle;
@@ -144,10 +191,55 @@ export default function ConversationalCopilotBuilder() {
     let dShadow = shadowStyle;
     let dSpacing = spacingScale;
 
-    // 1. BRAND ARCHITECTURAL PRESETS
+    // 1. EXTRACT ANY TWO COLORS OR SINGLE COLOR FROM CHAT PROMPT
+    const words = p.split(/[\s,]+/);
+    const foundColors: string[] = [];
+    for (const w of words) {
+      const cleanWord = w.replace(/[^a-zA-Záéíóúàèìòùâêîôûãõç]/g, "");
+      if (colorMap[cleanWord]) {
+        foundColors.push(colorMap[cleanWord]);
+      }
+    }
+
+    if (foundColors.length >= 2) {
+      // Multi-colors preference (e.g. "rosa e roxo", "azul e branco")
+      detPrimary = foundColors[0];
+      detSecondary = foundColors[1];
+      
+      // If one of the colors is white/branco, switch light background mode
+      if (foundColors.includes("#ffffff")) {
+        detLight = true;
+        // The other color becomes primary accent
+        detPrimary = foundColors.find(c => c !== "#ffffff") || "#3b82f6";
+      } else {
+        detLight = false;
+      }
+    } else if (foundColors.length === 1) {
+      // Single color preference
+      detPrimary = foundColors[0];
+      if (detPrimary === "#ffffff") {
+        detLight = true;
+        detPrimary = "#3b82f6"; // default blue accent on white bg
+      } else {
+        detLight = false;
+        detSecondary = "#0a0f1d"; // default dark theme bg
+      }
+    }
+
+    // Explicit light/dark check overrides
+    if (p.includes("branco") || p.includes("claro") || p.includes("white") || p.includes("light")) {
+      detLight = true;
+    }
+    if (p.includes("preto") || p.includes("escuro") || p.includes("black") || p.includes("dark")) {
+      detLight = false;
+      detSecondary = "#090909";
+    }
+
+    // 2. BRAND PRESETS ARCHITECTURE
     if (p.includes("apple")) {
       dStyle = "apple";
-      detectedPalette = "mono-light";
+      detLight = true;
+      detPrimary = "#1d1d1f";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "none";
@@ -156,129 +248,75 @@ export default function ConversationalCopilotBuilder() {
     } 
     else if (p.includes("tesla")) {
       dStyle = "tesla";
-      detectedPalette = "indigo-purple";
+      detLight = false;
+      detSecondary = "#090909";
       dBorder = "md";
       dFont = "display";
       dShadow = "glow";
       dSpacing = "normal";
-      detectedDesc = "Layout de ecrã imersivo, com tipografia arrojada e visual futurista de alta fidelidade.";
     }
     else if (p.includes("stripe")) {
       dStyle = "stripe";
-      detectedPalette = "indigo-purple";
+      detLight = false;
+      detPrimary = "#6366f1";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "lg";
       dSpacing = "normal";
-      detectedDesc = "Estética SaaS premium com gradientes oblíquos, grelhas complexas e botões dinâmicos.";
     }
     else if (p.includes("notion")) {
       dStyle = "notion";
-      detectedPalette = "mono-light";
+      detLight = true;
+      detPrimary = "#000000";
       dBorder = "md";
       dFont = "sans";
       dShadow = "none";
       dSpacing = "compact";
-      detectedDesc = "Estrutura limpa estilo Notion, com barra lateral de navegação, emojis e margens finas de contraste.";
     }
     else if (p.includes("linear")) {
       dStyle = "linear";
-      detectedPalette = "indigo-purple"; // Represents deep dark slate
+      detLight = false;
+      detSecondary = "#0b0c10";
       dBorder = "md";
       dFont = "mono";
       dShadow = "none";
       dSpacing = "compact";
-      detectedDesc = "Visual técnico ultra escuro com contornos finos, acentos de código e secções estruturadas.";
     }
     else if (p.includes("vercel")) {
       dStyle = "vercel";
-      detectedPalette = "mono-light"; // Stark black/white mode
+      detLight = false;
+      detSecondary = "#000000";
+      detPrimary = "#ffffff";
       dBorder = "none";
       dFont = "mono";
       dShadow = "none";
       dSpacing = "normal";
-      detectedDesc = "Visual stark minimalista com cantos retos, contrastes a preto e branco e cabeçalhos arrojados.";
-    }
-    else if (p.includes("airbnb")) {
-      dStyle = "airbnb";
-      detectedPalette = "emerald-dark"; // Soft layout with red accent
-      dBorder = "xl";
-      dFont = "sans";
-      dShadow = "sm";
-      dSpacing = "normal";
-      detectedDesc = "Grelha acolhedora de fotos, focada em simplicidade, contornos arredondados e botões chamativos.";
     }
 
-    // 2. SECTORS & SERVICES AUTO-FEATURES
+    // 3. SECTORS & WIDGETS
     if (p.includes("restaurante") || p.includes("pizzaria") || p.includes("comida")) {
       detectedCat = "Restaurante & Gastronomia";
-      detectedDesc = "Um menu de sabores requintados feito por profissionais de cozinha.";
       if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
       if (!detectedFeatures.includes("whatsapp")) detectedFeatures.push("whatsapp");
-      if (!detectedFeatures.includes("depoimentos")) detectedFeatures.push("depoimentos");
-    }
-    else if (p.includes("advogado") || p.includes("clinica") || p.includes("medico")) {
-      detectedCat = "Clínica & Apoio Profissional";
-      detectedDesc = "Atendimento rigoroso focado na excelência e bem-estar do cliente.";
-      if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
-      if (!detectedFeatures.includes("contactos")) detectedFeatures.push("contactos");
-    }
-
-    // 3. DETECT COLOR PALETTES (Double color matching first)
-    if ((p.includes("azul") && p.includes("branco")) || (p.includes("azul") && p.includes("branca")) || (p.includes("blue") && p.includes("white"))) {
-      detectedPalette = "blue-white";
-    } else if ((p.includes("preto") && p.includes("dourado")) || (p.includes("preto") && p.includes("ouro")) || (p.includes("black") && p.includes("gold"))) {
-      detectedPalette = "black-gold";
-    } else if ((p.includes("vermelho") && p.includes("preto")) || (p.includes("vermelho") && p.includes("preta")) || (p.includes("red") && p.includes("black"))) {
-      detectedPalette = "red-black";
-    }
-    // Single color matching
-    else if (p.includes("vermelho") || p.includes("red")) {
-      detectedPalette = "red";
-    } else if (p.includes("azul") || p.includes("indigo") || p.includes("roxo")) {
-      detectedPalette = "indigo-purple";
-    } else if (p.includes("verde") || p.includes("esmeralda")) {
-      detectedPalette = "emerald-dark";
-    } else if (p.includes("branco") || p.includes("claro")) {
-      detectedPalette = "mono-light";
-    } else if (p.includes("dourado") || p.includes("ouro")) {
-      detectedPalette = "blue-gold";
     }
 
     if (p.includes("espaço") || p.includes("afasta")) dSpacing = "wide";
-    if (p.includes("compacto") || p.includes("junto")) dSpacing = "compact";
     if (p.includes("arredondado") || p.includes("redondo")) dBorder = "full";
     if (p.includes("quadrado") || p.includes("reto")) dBorder = "none";
-    if (p.includes("serif")) dFont = "serif";
-    if (p.includes("mono")) dFont = "mono";
-
-    if (p.includes("whatsapp")) {
-      if (!detectedFeatures.includes("whatsapp")) detectedFeatures.push("whatsapp");
-    }
-    if (p.includes("galeria")) {
-      if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
-    }
-    if (p.includes("faq")) {
-      if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
-    }
-
-    // Extract potential brand name
-    const nameMatch = prompt.match(/chamad[oa]\s+["']?([^"']+)["']?/i) || prompt.match(/nome\s+["']?([^"']+)["']?/i);
-    if (nameMatch && nameMatch[1]) {
-      detectedName = nameMatch[1].trim();
-    }
 
     return {
       name: detectedName,
       category: detectedCat,
       description: detectedDesc,
-      palette: detectedPalette,
       features: detectedFeatures,
       style: dStyle,
       border: dBorder,
       font: dFont,
       shadow: dShadow,
-      spacing: dSpacing
+      spacing: dSpacing,
+      primaryColor: detPrimary,
+      secondaryColor: detSecondary,
+      isLightMode: detLight
     };
   };
 
@@ -291,7 +329,7 @@ export default function ConversationalCopilotBuilder() {
 
     const thoughts = [
       "❯ Analisando linguagem natural...",
-      "❯ Reconfigurando grelhas de layout...",
+      "❯ Extraindo parâmetros cromáticos (Cores)...",
       "❯ Escolhendo presets estruturais do Design System...",
       "❯ A gravar definições de marca no Supabase..."
     ];
@@ -312,8 +350,12 @@ export default function ConversationalCopilotBuilder() {
       setBrandName(design.name);
       setCategory(design.category);
       setDescription(design.description);
-      setPalette(design.palette);
       setFeatures(design.features);
+
+      // Colors engine apply
+      setPrimaryColor(design.primaryColor);
+      setSecondaryColor(design.secondaryColor);
+      setIsLightMode(design.isLightMode);
 
       // Apply Layout architecture parameters
       setBrandStyle(design.style);
@@ -324,8 +366,8 @@ export default function ConversationalCopilotBuilder() {
 
       setIsCompleted(true);
 
-      // Serialize configurations for database column
-      const serializedPalette = `${design.palette}:${design.style}:${design.border}:${design.font}:${design.shadow}:${design.spacing}`;
+      // Serialize configurations for database palette column
+      const serializedPalette = `${design.primaryColor}:${design.secondaryColor}:${design.isLightMode}:${design.style}:${design.border}:${design.font}:${design.shadow}:${design.spacing}`;
 
       const slug = design.name.toLowerCase().replace(/[^a-z0-9]/g, "");
       const randomHash = Math.random().toString(36).substring(2, 6);
@@ -353,7 +395,7 @@ export default function ConversationalCopilotBuilder() {
         ...prev,
         {
           sender: "ai",
-          text: `Entendido! Reestruturei por completo o layout de **${design.name}** para seguir a arquitetura visual **${design.style.toUpperCase()}**.\n\nExplicação do Design System:\n✓ Preset de Marca: *${design.style}*\n✓ Escala de Espaçamento: *${design.spacing}*\n✓ Bordas: *${design.border}*\n✓ Tipografia: *${design.font}*\n✓ Paleta Ativa: *${design.palette.toUpperCase()}*\n\nQue modificações estruturais gostarias de fazer a seguir?`,
+          text: `Entendido! Reestruturei por completo o website de **${design.name}** com as tuas cores favoritas.\n\nFicha Técnica do Design System:\n✓ Cor Principal: **${design.primaryColor}**\n✓ Modo Escuro/Claro: **${design.isLightMode ? "Claro (Light)" : "Escuro (Dark)"}**\n✓ Preset de Layout: **${design.style.toUpperCase()}**\n✓ Bordas: **${design.border}**\n\nQual o próximo passo de design?`,
           timestamp: new Date()
         }
       ]);
@@ -371,113 +413,46 @@ export default function ConversationalCopilotBuilder() {
 
   const handleSurpriseMe = () => {
     const creativeIdeas = [
-      "Quero um website estilo Notion minimalista em tons claros.",
-      "Cria um site estilo Tesla futurista com brilho neon.",
-      "Quero um site estilo Stripe moderno com botões em gradiente.",
-      "Faz um site estilo Linear técnico ultra escuro com contornos finos."
+      "Quero um website rosa e roxo estilo Notion.",
+      "Cria um site laranja e preto estilo Tesla.",
+      "Quero um site azul e branco estilo Stripe.",
+      "Faz um site amarelo e preto estilo Linear."
     ];
     const randomPrompt = creativeIdeas[Math.floor(Math.random() * creativeIdeas.length)];
     handleSend(randomPrompt);
   };
 
-  // Helper variables mappings for preview styles
+  // Resolve dynamic colors objects to bind inline style tags
   const getThemeClasses = () => {
-    if (brandStyle === "notion") {
-      return {
-        bg: "bg-[#FBFBFA]",
-        card: "bg-transparent border border-slate-200/80 shadow-none text-slate-800",
-        textAccent: "text-slate-900 font-bold",
-        btnAccent: "bg-slate-900 hover:bg-slate-800 text-white rounded shadow-sm",
-        btnOutline: "border-slate-350 hover:bg-slate-100 text-slate-900 rounded"
-      };
-    }
-    if (brandStyle === "linear") {
-      return {
-        bg: "bg-[#0b0c10]",
-        card: "bg-[#12131a] border border-slate-800/80 shadow-none text-slate-300",
-        textAccent: "text-purple-400 font-mono",
-        btnAccent: "bg-[#5c6bc0] hover:bg-[#3f51b5] text-white border border-[#7986cb]",
-        btnOutline: "border-slate-800 hover:bg-slate-900 text-white"
-      };
-    }
-    if (brandStyle === "vercel") {
-      return {
-        bg: "bg-black",
-        card: "bg-black border border-white/10 rounded-none text-white",
-        textAccent: "text-white font-bold",
-        btnAccent: "bg-white hover:bg-slate-100 text-black rounded-none font-bold",
-        btnOutline: "border-white/15 hover:bg-white/5 text-white rounded-none"
-      };
-    }
+    const contrastColor = (hex: string) => {
+      if (hex === "#ffffff" || hex === "#ffffff" || hex === "#f8fafc") return "#0f172a";
+      return "#ffffff";
+    };
 
-    // Default palettes
-    switch (palette) {
-      case "blue-white":
-        return {
-          bg: "bg-[#f8fafc]",
-          card: "bg-white border border-blue-150 text-slate-800 shadow-sm",
-          textAccent: "text-blue-600",
-          btnAccent: "bg-blue-600 hover:bg-blue-700 text-white font-bold",
-          btnOutline: "border-blue-200 text-blue-600 hover:bg-blue-50/50"
-        };
-      case "black-gold":
-        return {
-          bg: "bg-black",
-          card: "bg-[#0b0b0b] border border-[#d4af37]/25 text-slate-300",
-          textAccent: "text-[#d4af37]",
-          btnAccent: "bg-gradient-to-r from-[#d4af37] to-[#c5a059] text-black font-extrabold",
-          btnOutline: "border-[#d4af37]/35 text-[#d4af37] hover:bg-[#d4af37]/10"
-        };
-      case "red-black":
-        return {
-          bg: "bg-[#090909]",
-          card: "bg-[#121212] border border-red-500/20 text-slate-300",
-          textAccent: "text-red-500",
-          btnAccent: "bg-red-600 hover:bg-red-700 text-white font-bold",
-          btnOutline: "border-red-500/25 text-red-500 hover:bg-red-500/10"
-        };
-      case "red":
-        return {
-          bg: "bg-[#1a0505]",
-          card: "bg-[#2b0c0c]/80 border-red-500/20",
-          textAccent: "text-red-500",
-          btnAccent: "bg-red-650 hover:bg-red-750 text-white font-bold",
-          btnOutline: "border-red-500/30 hover:bg-red-500/10 text-white"
-        };
-      case "emerald-dark":
-        return {
-          bg: "bg-[#022c22]",
-          card: "bg-[#064e3b]/80 border-[#10b981]/20",
-          textAccent: "text-[#10b981]",
-          btnAccent: "bg-[#10b981] hover:bg-[#059669] text-white",
-          btnOutline: "border-[#10b981]/30 hover:bg-[#10b981]/10 text-white"
-        };
-      case "indigo-purple":
-        return {
-          bg: "bg-[#0f172a]",
-          card: "bg-[#1e1b4b]/80 border-[#6366f1]/20",
-          textAccent: "text-[#6366f1]",
-          btnAccent: "bg-[#6366f1] hover:bg-[#4f46e5] text-white",
-          btnOutline: "border-[#6366f1]/30 hover:bg-[#6366f1]/10 text-white"
-        };
-      case "mono-light":
-        return {
-          bg: "bg-slate-50",
-          card: "bg-white border-slate-200 shadow-sm",
-          textAccent: "text-slate-800",
-          btnAccent: "bg-slate-900 hover:bg-slate-800 text-white",
-          btnOutline: "border-slate-300 hover:bg-slate-100 text-slate-900"
-        };
-      case "blue-gold":
-      default:
-        return {
-          bg: "bg-[#0a0f1d]",
-          card: "bg-[#111827]/80 border-[#d4af37]/20",
-          textAccent: "text-[#d4af37]",
-          btnAccent: "bg-gradient-to-r from-[#d4af37] to-[#c5a059] hover:shadow-lg text-slate-900 font-bold",
-          btnOutline: "border-[#d4af37]/30 hover:bg-[#d4af37]/10 text-white"
-        };
-    }
+    const isWhiteAccent = primaryColor === "#ffffff";
+    const resolvedBg = isLightMode ? "#f8fafc" : (secondaryColor === "#ffffff" ? "#0a0f1d" : secondaryColor);
+
+    return {
+      bgStyle: { backgroundColor: resolvedBg },
+      headerStyle: { 
+        backgroundColor: isLightMode ? "rgba(255, 255, 255, 0.85)" : "rgba(3, 7, 18, 0.4)",
+        borderColor: isLightMode ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.05)"
+      },
+      cardStyle: { 
+        backgroundColor: isLightMode ? "#ffffff" : "rgba(17, 24, 39, 0.8)",
+        borderColor: isLightMode ? "rgba(0, 0, 0, 0.08)" : `${primaryColor}20`,
+        color: isLightMode ? "#1f2937" : "#e5e7eb"
+      },
+      textStyle: { color: isWhiteAccent ? "#e2e8f0" : primaryColor },
+      btnStyle: { 
+        backgroundColor: primaryColor, 
+        color: contrastColor(primaryColor)
+      },
+      btnOutlineStyle: { 
+        borderColor: `${primaryColor}40`, 
+        color: isWhiteAccent ? "#ffffff" : primaryColor
+      }
+    };
   };
 
   const previewTheme = getThemeClasses();
@@ -516,13 +491,7 @@ export default function ConversationalCopilotBuilder() {
       case "lg": return "shadow-2xl border-white/10";
       case "glow":
       default:
-        return palette === "red" || palette === "red-black"
-          ? "shadow-[0_0_22px_rgba(239,68,68,0.18)] border-red-500/20"
-          : palette === "emerald-dark" 
-          ? "shadow-[0_0_22px_rgba(16,185,129,0.15)] border-emerald-500/20"
-          : palette === "indigo-purple" || palette === "blue-white"
-          ? "shadow-[0_0_22px_rgba(99,102,241,0.18)] border-indigo-500/20"
-          : "shadow-[0_0_22px_rgba(212,175,55,0.16)] border-brand-gold/20";
+        return `shadow-[0_0_22px_${primaryColor}25] border-white/5`;
     }
   };
 
@@ -567,7 +536,7 @@ export default function ConversationalCopilotBuilder() {
   };
 
   const previewContent = getGeneratedContent();
-  const isLight = palette === "mono-light" || brandStyle === "notion" || palette === "blue-white";
+  const isLight = isLightMode;
 
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
@@ -665,7 +634,7 @@ export default function ConversationalCopilotBuilder() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Peça qualquer alteração (Ex: 'Muda tudo para estilo Stripe')"
+                placeholder="Peça qualquer cor (Ex: 'Quero rosa e roxo')"
                 className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
               />
               <button
@@ -723,9 +692,12 @@ export default function ConversationalCopilotBuilder() {
             }`}>
               
               {/* Dynamic Live website page */}
-              <div className={`h-full overflow-y-auto relative transition-all duration-500 ${previewTheme.bg} ${
-                isLight ? "text-slate-850" : "text-slate-350"
-              } ${getFontFamilyClass()} flex`}>
+              <div 
+                className={`h-full overflow-y-auto relative transition-all duration-500 ${
+                  isLight ? "text-slate-800" : "text-slate-300"
+                } ${getFontFamilyClass()} flex`}
+                style={previewTheme.bgStyle}
+              >
 
                 {/* NOTION SIDEBAR VARIANT */}
                 {brandStyle === "notion" && previewMode === "desktop" && (
@@ -759,7 +731,6 @@ export default function ConversationalCopilotBuilder() {
                         </div>
                       </div>
                     ) : brandStyle === "notion" ? (
-                      /* Minimal Notion Header (e.g. mobile representation) */
                       previewMode !== "desktop" ? (
                         <div className="flex items-center justify-between p-4 border-b border-slate-200/60 bg-[#FBFBFA]">
                           <span className="font-bold text-slate-800">📝 {brandName}</span>
@@ -767,7 +738,6 @@ export default function ConversationalCopilotBuilder() {
                         </div>
                       ) : null
                     ) : brandStyle === "stripe" ? (
-                      /* Slanted gradient background header for Stripe */
                       <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 text-white p-6 pb-20 select-none">
                         <div className="flex items-center justify-between max-w-4xl mx-auto">
                           <div className="font-extrabold text-lg tracking-tight">{brandName}</div>
@@ -779,26 +749,26 @@ export default function ConversationalCopilotBuilder() {
                             Começar ➔
                           </button>
                         </div>
-                        {/* Slant shape */}
                         <div className="absolute bottom-0 left-0 right-0 h-8 bg-[#0f172a] transform skew-y-1 origin-bottom-left" />
                       </div>
                     ) : (
                       /* Classic Header */
-                      <div className={`flex items-center justify-between p-6 border-b ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
-                        <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
-                          <span className={`w-2.5 h-2.5 rounded-full animate-pulse ${
-                            palette === "red" || palette === "red-black" ? "bg-red-500" :
-                            palette === "blue-white" ? "bg-blue-500" :
-                            palette === "emerald-dark" ? "bg-emerald-400" :
-                            palette === "indigo-purple" ? "bg-indigo-400" : "bg-[#d4af37]"
-                          }`} />
+                      <div 
+                        className="flex items-center justify-between p-6 border-b select-none"
+                        style={previewTheme.headerStyle}
+                      >
+                        <div className="font-bold text-lg flex items-center gap-1.5 font-display select-none">
+                          <span 
+                            className="w-2.5 h-2.5 rounded-full animate-pulse" 
+                            style={{ backgroundColor: primaryColor }}
+                          />
                           {brandName}
                         </div>
                         <div className="flex items-center gap-6 text-xs font-semibold select-none">
-                          <span className="hover:text-white cursor-pointer transition-colors">Início</span>
-                          {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
-                          {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
-                          {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
+                          <span className="hover:opacity-80 cursor-pointer transition-colors">Início</span>
+                          {features.includes("servicos") && <span className="hover:opacity-80 cursor-pointer transition-colors">Serviços</span>}
+                          {features.includes("galeria") && <span className="hover:opacity-80 cursor-pointer transition-colors">Galeria</span>}
+                          {features.includes("depoimentos") && <span className="hover:opacity-80 cursor-pointer transition-colors">Clientes</span>}
                         </div>
                       </div>
                     )}
@@ -810,7 +780,7 @@ export default function ConversationalCopilotBuilder() {
                         <h1 className="text-3.5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                           {previewContent.heroTitle}
                         </h1>
-                        <p className="text-xs text-slate-500 leading-relaxed max-w-lg">
+                        <p className="text-xs text-slate-505 leading-relaxed max-w-lg">
                           {previewContent.heroSubtitle}
                         </p>
                         <div className="pt-2">
@@ -821,7 +791,7 @@ export default function ConversationalCopilotBuilder() {
                       </div>
                     ) : brandStyle === "linear" ? (
                       <div className="py-20 px-8 text-center space-y-6 max-w-3xl mx-auto">
-                        <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[9px] font-mono border border-slate-800 bg-[#12131a] text-purple-400">
+                        <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[9px] font-mono border border-slate-850 bg-[#12131a]" style={previewTheme.textStyle}>
                           <span>⚙️</span> Linear Style Preview
                         </div>
                         <h1 className="text-4xl font-extrabold tracking-tight text-white uppercase font-mono">
@@ -844,7 +814,7 @@ export default function ConversationalCopilotBuilder() {
                         <h1 className="text-5xl font-extrabold tracking-tighter text-white uppercase select-none">
                           {previewContent.heroTitle}
                         </h1>
-                        <p className="text-xs text-slate-455 leading-relaxed font-mono max-w-md mx-auto">
+                        <p className="text-xs text-slate-400 leading-relaxed font-mono max-w-md mx-auto">
                           {previewContent.heroSubtitle}
                         </p>
                         <div className="flex items-center justify-center gap-4">
@@ -857,20 +827,18 @@ export default function ConversationalCopilotBuilder() {
                         </div>
                       </div>
                     ) : brandStyle === "stripe" ? (
-                      /* Stripe Hero */
                       <div className="py-16 px-8 text-left space-y-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                         <div className="space-y-6">
                           <h1 className="text-3.5xl font-extrabold leading-tight text-white tracking-tight">
                             {previewContent.heroTitle}
                           </h1>
-                          <p className="text-xs leading-relaxed text-slate-350">
+                          <p className="text-xs leading-relaxed text-slate-300">
                             {previewContent.heroSubtitle}
                           </p>
                           <button className="px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:shadow-lg text-white font-bold text-xs flex items-center gap-1">
                             Começar agora <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        {/* Mock Dashboard graph widget for Stripe style */}
                         <div className="w-full h-48 bg-[#1e293b]/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
                           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                             <span className="text-[10px] text-slate-400 font-bold">Receitas / Vendas</span>
@@ -886,23 +854,30 @@ export default function ConversationalCopilotBuilder() {
                     ) : (
                       /* Default Hero */
                       <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
-                        <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
-                          isLight ? "bg-slate-200/80 text-slate-850" : "bg-white/5 border border-white/10 text-white"
-                        }`}>
-                          <Sparkles className={`w-3 h-3 ${previewTheme.textAccent}`} />
+                        <div 
+                          className="inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold bg-black/10 border border-white/5"
+                          style={previewTheme.textStyle}
+                        >
+                          <Sparkles className="w-3 h-3" />
                           {category}
                         </div>
-                        <h1 className={`text-3xl font-display font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                        <h1 className="text-3.5xl font-display font-extrabold leading-tight">
                           {previewContent.heroTitle}
                         </h1>
                         <p className="text-xs leading-relaxed max-w-md mx-auto">
                           {previewContent.heroSubtitle}
                         </p>
                         <div className="flex items-center justify-center gap-3">
-                          <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
+                          <button 
+                            className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold`}
+                            style={previewTheme.btnStyle}
+                          >
                             Nossos Serviços
                           </button>
-                          <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border ${previewTheme.btnOutline}`}>
+                          <button 
+                            className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border`}
+                            style={previewTheme.btnOutlineStyle}
+                          >
                             Fale Connosco
                           </button>
                         </div>
@@ -911,11 +886,9 @@ export default function ConversationalCopilotBuilder() {
 
                     {/* SERVICES SECTION */}
                     {features.includes("servicos") && (
-                      <div className={`${getSpacingClass()} px-8 border-t ${
-                        isLight ? "border-slate-200/60" : "border-white/5"
-                      } max-w-4xl mx-auto`}>
+                      <div className={`${getSpacingClass()} px-8 border-t max-w-4xl mx-auto`}>
                         <div className="text-center space-y-1.5">
-                          <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Nossos Serviços</h3>
+                          <h3 className="text-xl font-bold">Nossos Serviços</h3>
                           <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soluções feitas para si</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -926,14 +899,15 @@ export default function ConversationalCopilotBuilder() {
                                 brandStyle === "notion" ? "bg-transparent border border-slate-200/80 shadow-none text-slate-800" :
                                 brandStyle === "linear" ? "bg-[#12131a] border border-slate-800/85 font-mono shadow-none text-slate-350" :
                                 brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none shadow-none text-white" :
-                                previewTheme.card
+                                ""
                               } ${getShadowClass()}`}
+                              style={brandStyle !== "notion" && brandStyle !== "linear" && brandStyle !== "vercel" ? previewTheme.cardStyle : undefined}
                             >
                               <div className="space-y-1.5">
-                                <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"}`}>{srv.name}</h4>
+                                <h4 className="text-xs font-bold">{srv.name}</h4>
                                 <p className="text-[10px] text-slate-450 leading-relaxed">{srv.desc}</p>
                               </div>
-                              <span className={`text-[10px] font-bold ${previewTheme.textAccent}`}>➔ Saber mais</span>
+                              <span className="text-[10px] font-bold cursor-pointer" style={previewTheme.textStyle}>➔ Saber mais</span>
                             </div>
                           ))}
                         </div>
@@ -942,20 +916,18 @@ export default function ConversationalCopilotBuilder() {
 
                     {/* GALLERY SECTION */}
                     {features.includes("galeria") && (
-                      <div className={`${getSpacingClass()} px-8 border-t ${
-                        isLight ? "border-slate-200/60" : "border-white/5"
-                      } max-w-4xl mx-auto`}>
+                      <div className={`${getSpacingClass()} px-8 border-t max-w-4xl mx-auto`}>
                         <div className="text-center space-y-1.5">
-                          <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Portfólio / Galeria</h3>
+                          <h3 className="text-xl font-bold">Portfólio / Galeria</h3>
                           <p className="text-[10px] text-slate-500 uppercase tracking-wider">Nosso trabalho recente</p>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                           {[1, 2, 3].map(i => (
-                            <div key={i} className={`aspect-video flex items-center justify-center text-[10px] border ${getBorderRadiusClass()} ${
-                              brandStyle === "notion" ? "bg-transparent border border-slate-200" :
-                              brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none" :
-                              previewTheme.card
-                            } ${getShadowClass()}`}>
+                            <div 
+                              key={i} 
+                              className={`aspect-video flex items-center justify-center text-[10px] border ${getBorderRadiusClass()} ${getShadowClass()}`}
+                              style={brandStyle !== "notion" && brandStyle !== "linear" && brandStyle !== "vercel" ? previewTheme.cardStyle : undefined}
+                            >
                               Imagem {i}
                             </div>
                           ))}
@@ -965,21 +937,19 @@ export default function ConversationalCopilotBuilder() {
 
                     {/* FAQ SECTION */}
                     {features.includes("faq") && (
-                      <div className={`${getSpacingClass()} px-8 border-t ${
-                        isLight ? "border-slate-200/60" : "border-white/5"
-                      } max-w-3xl mx-auto`}>
-                        <h2 className={`text-xl font-bold text-center mb-6 ${isLight ? "text-slate-900" : "text-white"}`}>Perguntas Frequentes</h2>
+                      <div className={`${getSpacingClass()} px-8 border-t max-w-3xl mx-auto`}>
+                        <h2 className="text-xl font-bold text-center mb-6">Perguntas Frequentes</h2>
                         <div className="space-y-3">
                           {[
                             { q: "Quais são os vossos prazos de entrega?", a: "Dependendo da dimensão do projeto, tipicamente realizamos a entrega final num prazo de 3 a 7 dias úteis." },
                             { q: "Posso solicitar alterações após a publicação?", a: "Sim, suportamos facilidade de alteração e modificações continuas a qualquer momento." }
                           ].map((faq, fi) => (
-                            <div key={fi} className={`p-4 border ${getBorderRadiusClass()} ${
-                              brandStyle === "notion" ? "bg-transparent border border-slate-200" :
-                              brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none" :
-                              previewTheme.card
-                            } ${getShadowClass()}`}>
-                              <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"} mb-1.5`}>{faq.q}</h4>
+                            <div 
+                              key={fi} 
+                              className={`p-4 border ${getBorderRadiusClass()} ${getShadowClass()}`}
+                              style={brandStyle !== "notion" && brandStyle !== "linear" && brandStyle !== "vercel" ? previewTheme.cardStyle : undefined}
+                            >
+                              <h4 className="text-xs font-bold mb-1.5">{faq.q}</h4>
                               <p className="text-[10px] text-slate-455 leading-relaxed">{faq.a}</p>
                             </div>
                           ))}
@@ -989,24 +959,25 @@ export default function ConversationalCopilotBuilder() {
 
                     {/* CONTACT SECTION */}
                     {features.includes("contactos") && (
-                      <div className="py-16 px-8 border-t border-white/5 max-w-md mx-auto space-y-6">
-                        <h2 className={`text-xl font-bold text-center ${isLight ? "text-slate-900" : "text-white"}`}>Contacte-nos</h2>
+                      <div className="py-16 px-8 border-t max-w-md mx-auto space-y-6">
+                        <h2 className="text-xl font-bold text-center">Contacte-nos</h2>
                         <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
                           <input
                             type="text"
                             placeholder="Nome"
-                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()} ${
-                              isLight ? "border-slate-350 text-slate-800" : "border-white/10 text-white"
-                            }`}
+                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()}`}
+                            style={{ borderColor: `${primaryColor}20`, color: isLight ? "#1f2937" : "#ffffff" }}
                           />
                           <textarea
                             rows={3}
                             placeholder="Mensagem..."
-                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none resize-none ${getBorderRadiusClass()} ${
-                              isLight ? "border-slate-350 text-slate-800" : "border-white/10 text-white"
-                            }`}
+                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none resize-none ${getBorderRadiusClass()}`}
+                            style={{ borderColor: `${primaryColor}20`, color: isLight ? "#1f2937" : "#ffffff" }}
                           />
-                          <button className={`w-full py-2.5 text-xs font-bold ${getBorderRadiusClass()} ${previewTheme.btnAccent}`}>
+                          <button 
+                            className={`w-full py-2.5 text-xs font-bold ${getBorderRadiusClass()}`}
+                            style={previewTheme.btnStyle}
+                          >
                             Enviar Mensagem
                           </button>
                         </form>
@@ -1023,9 +994,11 @@ export default function ConversationalCopilotBuilder() {
                   )}
 
                   {/* Footer */}
-                  <div className={`p-8 border-t text-center text-[10px] text-slate-500 select-none ${
-                    isLight ? "border-slate-200/60" : "border-white/5"
-                  }`} suppressHydrationWarning>
+                  <div 
+                    className="p-8 border-t text-center text-[10px] text-slate-500 select-none"
+                    style={{ borderColor: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.05)" }}
+                    suppressHydrationWarning
+                  >
                     &copy; {new Date().getFullYear()} {brandName}. Desenvolvido com IA da MD Sites.
                   </div>
 
