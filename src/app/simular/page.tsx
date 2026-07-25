@@ -52,7 +52,7 @@ export default function ConversationalCopilotBuilder() {
 
   // Designer System states (Copilot v4.0+ Architectural Layout Selector)
   const [brandStyle, setBrandStyle] = useState("default"); // apple, tesla, stripe, notion, linear, vercel, airbnb, default
-  const [palette, setPalette] = useState("blue-gold"); // blue-gold, indigo-purple, emerald-dark, mono-light, red
+  const [palette, setPalette] = useState("blue-gold"); // blue-gold, indigo-purple, emerald-dark, mono-light, red, blue-white, black-gold, red-black
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
@@ -68,7 +68,7 @@ export default function ConversationalCopilotBuilder() {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas ou cores específicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site vermelho e preto super moderno'*\n• *'Faz um layout futurista escuro estilo Linear'*\n• *'Quero um restaurante italiano estilo Apple'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas ou cores específicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site vermelho e preto super moderno'*\n• *'Faz um layout azul e branco inspirado na Apple'*\n• *'Quero um website preto e dourado de luxo'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
         timestamp: new Date()
       }
     ]);
@@ -224,12 +224,26 @@ export default function ConversationalCopilotBuilder() {
       if (!detectedFeatures.includes("contactos")) detectedFeatures.push("contactos");
     }
 
-    // 3. REACTIVE ADJUSTMENTS (Colors / Fonts / Spacings)
-    if (p.includes("azul") || p.includes("indigo")) detectedPalette = "indigo-purple";
-    if (p.includes("verde") || p.includes("esmeralda")) detectedPalette = "emerald-dark";
-    if (p.includes("dourado") || p.includes("preto")) detectedPalette = "blue-gold";
-    if (p.includes("claro") || p.includes("branco")) detectedPalette = "mono-light";
-    if (p.includes("vermelho") || p.includes("red")) detectedPalette = "red";
+    // 3. DETECT COLOR PALETTES (Double color matching first)
+    if ((p.includes("azul") && p.includes("branco")) || (p.includes("azul") && p.includes("branca")) || (p.includes("blue") && p.includes("white"))) {
+      detectedPalette = "blue-white";
+    } else if ((p.includes("preto") && p.includes("dourado")) || (p.includes("preto") && p.includes("ouro")) || (p.includes("black") && p.includes("gold"))) {
+      detectedPalette = "black-gold";
+    } else if ((p.includes("vermelho") && p.includes("preto")) || (p.includes("vermelho") && p.includes("preta")) || (p.includes("red") && p.includes("black"))) {
+      detectedPalette = "red-black";
+    }
+    // Single color matching
+    else if (p.includes("vermelho") || p.includes("red")) {
+      detectedPalette = "red";
+    } else if (p.includes("azul") || p.includes("indigo") || p.includes("roxo")) {
+      detectedPalette = "indigo-purple";
+    } else if (p.includes("verde") || p.includes("esmeralda")) {
+      detectedPalette = "emerald-dark";
+    } else if (p.includes("branco") || p.includes("claro")) {
+      detectedPalette = "mono-light";
+    } else if (p.includes("dourado") || p.includes("ouro")) {
+      detectedPalette = "blue-gold";
+    }
 
     if (p.includes("espaço") || p.includes("afasta")) dSpacing = "wide";
     if (p.includes("compacto") || p.includes("junto")) dSpacing = "compact";
@@ -339,7 +353,7 @@ export default function ConversationalCopilotBuilder() {
         ...prev,
         {
           sender: "ai",
-          text: `Entendido! Reestruturei por completo o layout de **${design.name}** para seguir a arquitetura visual **${design.style.toUpperCase()}**.\n\nExplicação do Design System:\n✓ Preset de Marca: *${design.style}*\n✓ Escala de Espaçamento: *${design.spacing}*\n✓ Bordas: *${design.border}*\n✓ Tipografia: *${design.font}*\n\nQue modificações estruturais gostarias de fazer a seguir?`,
+          text: `Entendido! Reestruturei por completo o layout de **${design.name}** para seguir a arquitetura visual **${design.style.toUpperCase()}**.\n\nExplicação do Design System:\n✓ Preset de Marca: *${design.style}*\n✓ Escala de Espaçamento: *${design.spacing}*\n✓ Bordas: *${design.border}*\n✓ Tipografia: *${design.font}*\n✓ Paleta Ativa: *${design.palette.toUpperCase()}*\n\nQue modificações estruturais gostarias de fazer a seguir?`,
           timestamp: new Date()
         }
       ]);
@@ -398,6 +412,30 @@ export default function ConversationalCopilotBuilder() {
 
     // Default palettes
     switch (palette) {
+      case "blue-white":
+        return {
+          bg: "bg-[#f8fafc]",
+          card: "bg-white border border-blue-150 text-slate-800 shadow-sm",
+          textAccent: "text-blue-600",
+          btnAccent: "bg-blue-600 hover:bg-blue-700 text-white font-bold",
+          btnOutline: "border-blue-200 text-blue-600 hover:bg-blue-50/50"
+        };
+      case "black-gold":
+        return {
+          bg: "bg-black",
+          card: "bg-[#0b0b0b] border border-[#d4af37]/25 text-slate-300",
+          textAccent: "text-[#d4af37]",
+          btnAccent: "bg-gradient-to-r from-[#d4af37] to-[#c5a059] text-black font-extrabold",
+          btnOutline: "border-[#d4af37]/35 text-[#d4af37] hover:bg-[#d4af37]/10"
+        };
+      case "red-black":
+        return {
+          bg: "bg-[#090909]",
+          card: "bg-[#121212] border border-red-500/20 text-slate-300",
+          textAccent: "text-red-500",
+          btnAccent: "bg-red-600 hover:bg-red-700 text-white font-bold",
+          btnOutline: "border-red-500/25 text-red-500 hover:bg-red-500/10"
+        };
       case "red":
         return {
           bg: "bg-[#1a0505]",
@@ -478,11 +516,11 @@ export default function ConversationalCopilotBuilder() {
       case "lg": return "shadow-2xl border-white/10";
       case "glow":
       default:
-        return palette === "red"
+        return palette === "red" || palette === "red-black"
           ? "shadow-[0_0_22px_rgba(239,68,68,0.18)] border-red-500/20"
           : palette === "emerald-dark" 
           ? "shadow-[0_0_22px_rgba(16,185,129,0.15)] border-emerald-500/20"
-          : palette === "indigo-purple"
+          : palette === "indigo-purple" || palette === "blue-white"
           ? "shadow-[0_0_22px_rgba(99,102,241,0.18)] border-indigo-500/20"
           : "shadow-[0_0_22px_rgba(212,175,55,0.16)] border-brand-gold/20";
     }
@@ -529,7 +567,7 @@ export default function ConversationalCopilotBuilder() {
   };
 
   const previewContent = getGeneratedContent();
-  const isLight = palette === "mono-light" || brandStyle === "notion";
+  const isLight = palette === "mono-light" || brandStyle === "notion" || palette === "blue-white";
 
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
@@ -749,7 +787,8 @@ export default function ConversationalCopilotBuilder() {
                       <div className={`flex items-center justify-between p-6 border-b ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
                         <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
                           <span className={`w-2.5 h-2.5 rounded-full animate-pulse ${
-                            palette === "red" ? "bg-red-500" :
+                            palette === "red" || palette === "red-black" ? "bg-red-500" :
+                            palette === "blue-white" ? "bg-blue-500" :
                             palette === "emerald-dark" ? "bg-emerald-400" :
                             palette === "indigo-purple" ? "bg-indigo-400" : "bg-[#d4af37]"
                           }`} />
@@ -848,7 +887,7 @@ export default function ConversationalCopilotBuilder() {
                       /* Default Hero */
                       <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
                         <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
-                          isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
+                          isLight ? "bg-slate-200/80 text-slate-850" : "bg-white/5 border border-white/10 text-white"
                         }`}>
                           <Sparkles className={`w-3 h-3 ${previewTheme.textAccent}`} />
                           {category}
@@ -884,9 +923,9 @@ export default function ConversationalCopilotBuilder() {
                             <div 
                               key={idx} 
                               className={`p-5 flex flex-col justify-between h-[150px] transition-all ${getBorderRadiusClass()} ${
-                                brandStyle === "notion" ? "bg-transparent border border-slate-200/80 shadow-none" :
-                                brandStyle === "linear" ? "bg-[#12131a] border border-slate-800/85 font-mono shadow-none" :
-                                brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none shadow-none" :
+                                brandStyle === "notion" ? "bg-transparent border border-slate-200/80 shadow-none text-slate-800" :
+                                brandStyle === "linear" ? "bg-[#12131a] border border-slate-800/85 font-mono shadow-none text-slate-350" :
+                                brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none shadow-none text-white" :
                                 previewTheme.card
                               } ${getShadowClass()}`}
                             >
