@@ -52,7 +52,7 @@ export default function ConversationalCopilotBuilder() {
 
   // Designer System states (Copilot v4.0+ Architectural Layout Selector)
   const [brandStyle, setBrandStyle] = useState("default"); // apple, tesla, stripe, notion, linear, vercel, airbnb, default
-  const [palette, setPalette] = useState("blue-gold");
+  const [palette, setPalette] = useState("blue-gold"); // blue-gold, indigo-purple, emerald-dark, mono-light, red
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
@@ -68,7 +68,7 @@ export default function ConversationalCopilotBuilder() {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site minimalista estilo Notion em claro'*\n• *'Faz um layout futurista escuro estilo Linear'*\n• *'Quero um restaurante italiano estilo Apple'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas ou cores específicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site vermelho e preto super moderno'*\n• *'Faz um layout futurista escuro estilo Linear'*\n• *'Quero um restaurante italiano estilo Apple'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
         timestamp: new Date()
       }
     ]);
@@ -229,6 +229,7 @@ export default function ConversationalCopilotBuilder() {
     if (p.includes("verde") || p.includes("esmeralda")) detectedPalette = "emerald-dark";
     if (p.includes("dourado") || p.includes("preto")) detectedPalette = "blue-gold";
     if (p.includes("claro") || p.includes("branco")) detectedPalette = "mono-light";
+    if (p.includes("vermelho") || p.includes("red")) detectedPalette = "red";
 
     if (p.includes("espaço") || p.includes("afasta")) dSpacing = "wide";
     if (p.includes("compacto") || p.includes("junto")) dSpacing = "compact";
@@ -397,6 +398,14 @@ export default function ConversationalCopilotBuilder() {
 
     // Default palettes
     switch (palette) {
+      case "red":
+        return {
+          bg: "bg-[#1a0505]",
+          card: "bg-[#2b0c0c]/80 border-red-500/20",
+          textAccent: "text-red-500",
+          btnAccent: "bg-red-650 hover:bg-red-750 text-white font-bold",
+          btnOutline: "border-red-500/30 hover:bg-red-500/10 text-white"
+        };
       case "emerald-dark":
         return {
           bg: "bg-[#022c22]",
@@ -469,7 +478,9 @@ export default function ConversationalCopilotBuilder() {
       case "lg": return "shadow-2xl border-white/10";
       case "glow":
       default:
-        return palette === "emerald-dark" 
+        return palette === "red"
+          ? "shadow-[0_0_22px_rgba(239,68,68,0.18)] border-red-500/20"
+          : palette === "emerald-dark" 
           ? "shadow-[0_0_22px_rgba(16,185,129,0.15)] border-emerald-500/20"
           : palette === "indigo-purple"
           ? "shadow-[0_0_22px_rgba(99,102,241,0.18)] border-indigo-500/20"
@@ -737,7 +748,11 @@ export default function ConversationalCopilotBuilder() {
                       /* Classic Header */
                       <div className={`flex items-center justify-between p-6 border-b ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
                         <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
-                          <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
+                          <span className={`w-2.5 h-2.5 rounded-full animate-pulse ${
+                            palette === "red" ? "bg-red-500" :
+                            palette === "emerald-dark" ? "bg-emerald-400" :
+                            palette === "indigo-purple" ? "bg-indigo-400" : "bg-[#d4af37]"
+                          }`} />
                           {brandName}
                         </div>
                         <div className="flex items-center gap-6 text-xs font-semibold select-none">
@@ -790,7 +805,7 @@ export default function ConversationalCopilotBuilder() {
                         <h1 className="text-5xl font-extrabold tracking-tighter text-white uppercase select-none">
                           {previewContent.heroTitle}
                         </h1>
-                        <p className="text-xs text-slate-450 leading-relaxed font-mono max-w-md mx-auto">
+                        <p className="text-xs text-slate-455 leading-relaxed font-mono max-w-md mx-auto">
                           {previewContent.heroSubtitle}
                         </p>
                         <div className="flex items-center justify-center gap-4">
@@ -835,7 +850,7 @@ export default function ConversationalCopilotBuilder() {
                         <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
                           isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
                         }`}>
-                          <Sparkles className="w-3 h-3 text-brand-gold" />
+                          <Sparkles className={`w-3 h-3 ${previewTheme.textAccent}`} />
                           {category}
                         </div>
                         <h1 className={`text-3xl font-display font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
