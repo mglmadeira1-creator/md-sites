@@ -23,7 +23,16 @@ import {
   PanelLeft,
   X,
   Star,
-  Shuffle
+  Shuffle,
+  Code,
+  Layout,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  EyeOff,
+  Code2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import canvasConfetti from "canvas-confetti";
@@ -38,6 +47,9 @@ interface Message {
 export default function ConversationalCopilotBuilder() {
   const router = useRouter();
 
+  // Mode Controller: Copilot Chat, Manual Visual Editor, or Developer Custom Code
+  const [activeTab, setActiveTab] = useState<"copilot" | "visual" | "code">("copilot");
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [aiTyping, setAiTyping] = useState(false);
@@ -50,17 +62,23 @@ export default function ConversationalCopilotBuilder() {
   const [description, setDescription] = useState("Descreve o teu negócio e veja a IA criar os conteúdos.");
   const [features, setFeatures] = useState<string[]>(["servicos", "contactos"]);
 
-  // Designer System states (Copilot v4.0+ Architectural Layout Selector)
+  // Designer System layout states
   const [brandStyle, setBrandStyle] = useState("default"); // apple, tesla, stripe, notion, linear, vercel, airbnb, default
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
   const [spacingScale, setSpacingScale] = useState("normal"); // compact, normal, wide
 
-  // Dynamic Color Engine States (Supports ANY hex/rgb color combo)
+  // Dynamic Color Engine States
   const [primaryColor, setPrimaryColor] = useState("#d4af37"); // Accent color
   const [secondaryColor, setSecondaryColor] = useState("#0a0f1d"); // Background color
   const [isLightMode, setIsLightMode] = useState(false);
+
+  // Custom Code Injector States (Developer low-code widgets)
+  const [customCSS, setCustomCSS] = useState("");
+  const [customHTML, setCustomHTML] = useState("");
+  const [embedCode, setEmbedCode] = useState(""); // Iframe embeds (youtube, maps, typeform, stripe)
+  const [globalHeaderScript, setGlobalHeaderScript] = useState("");
 
   const [isCompleted, setIsCompleted] = useState(false);
   const [previewMode, setPreviewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
@@ -89,8 +107,6 @@ export default function ConversationalCopilotBuilder() {
     amarela: "#eab308",
     cinza: "#6b7280",
     cinzento: "#6b7280",
-    castanho: "#78350f",
-    marrom: "#78350f",
     blue: "#3b82f6",
     white: "#ffffff",
     black: "#090909",
@@ -109,7 +125,7 @@ export default function ConversationalCopilotBuilder() {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu designer UI/UX pessoal. Podes escolher **qualquer cor ou combinação de cores** do mundo (ex: 'Quero um site rosa e roxo', 'Cria um site azul e branco', 'Faz um design preto e dourado de luxo').\n\nEu ajusto o Design System inteiro para refletir as tuas cores!",
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas ou cores específicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site vermelho e preto super moderno'*\n• *'Faz um layout azul e branco inspirado na Apple'*\n• *'Quero um website preto e dourado de luxo'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
         timestamp: new Date()
       }
     ]);
@@ -146,8 +162,11 @@ export default function ConversationalCopilotBuilder() {
               setFontFamily(parts[5] || "sans");
               setShadowStyle(parts[6] || "glow");
               setSpacingScale(parts[7] || "normal");
+              if (parts[8]) setCustomCSS(decodeURIComponent(parts[8]));
+              if (parts[9]) setCustomHTML(decodeURIComponent(parts[9]));
+              if (parts[10]) setEmbedCode(decodeURIComponent(parts[10]));
             } else {
-              setPrimaryColor("#d4af37");
+              setPrimaryColor(data.palette);
             }
 
             setMessages(prev => [
@@ -202,31 +221,25 @@ export default function ConversationalCopilotBuilder() {
     }
 
     if (foundColors.length >= 2) {
-      // Multi-colors preference (e.g. "rosa e roxo", "azul e branco")
       detPrimary = foundColors[0];
       detSecondary = foundColors[1];
-      
-      // If one of the colors is white/branco, switch light background mode
       if (foundColors.includes("#ffffff")) {
         detLight = true;
-        // The other color becomes primary accent
         detPrimary = foundColors.find(c => c !== "#ffffff") || "#3b82f6";
       } else {
         detLight = false;
       }
     } else if (foundColors.length === 1) {
-      // Single color preference
       detPrimary = foundColors[0];
       if (detPrimary === "#ffffff") {
         detLight = true;
-        detPrimary = "#3b82f6"; // default blue accent on white bg
+        detPrimary = "#3b82f6";
       } else {
         detLight = false;
-        detSecondary = "#0a0f1d"; // default dark theme bg
+        detSecondary = "#0a0f1d";
       }
     }
 
-    // Explicit light/dark check overrides
     if (p.includes("branco") || p.includes("claro") || p.includes("white") || p.includes("light")) {
       detLight = true;
     }
@@ -329,7 +342,7 @@ export default function ConversationalCopilotBuilder() {
 
     const thoughts = [
       "❯ Analisando linguagem natural...",
-      "❯ Extraindo parâmetros cromáticos (Cores)...",
+      "❯ Extraindo parâmetros cromáticos...",
       "❯ Escolhendo presets estruturais do Design System...",
       "❯ A gravar definições de marca no Supabase..."
     ];
@@ -366,36 +379,27 @@ export default function ConversationalCopilotBuilder() {
 
       setIsCompleted(true);
 
-      // Serialize configurations for database palette column
-      const serializedPalette = `${design.primaryColor}:${design.secondaryColor}:${design.isLightMode}:${design.style}:${design.border}:${design.font}:${design.shadow}:${design.spacing}`;
-
-      const slug = design.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const randomHash = Math.random().toString(36).substring(2, 6);
-      const websiteUrl = editId 
-        ? `${slug}.mdsites.app`
-        : `${slug || "site"}-${randomHash}.mdsites.app`;
-
-      const payload = {
-        name: design.name,
-        category: design.category,
-        description: design.description,
-        palette: serializedPalette,
-        features: design.features,
-        url: websiteUrl,
-        status: "Publicado"
-      };
-
-      if (editId) {
-        await supabase.from("websites").update(payload).eq("id", editId);
-      } else {
-        await supabase.from("websites").insert([payload]);
-      }
+      // Save to Supabase (serializing layout config parameter)
+      await handleSyncToSupabase(
+        design.name,
+        design.category,
+        design.description,
+        design.primaryColor,
+        design.secondaryColor,
+        design.isLightMode,
+        design.style,
+        design.border,
+        design.font,
+        design.shadow,
+        design.spacing,
+        design.features
+      );
 
       setMessages(prev => [
         ...prev,
         {
           sender: "ai",
-          text: `Entendido! Reestruturei por completo o website de **${design.name}** com as tuas cores favoritas.\n\nFicha Técnica do Design System:\n✓ Cor Principal: **${design.primaryColor}**\n✓ Modo Escuro/Claro: **${design.isLightMode ? "Claro (Light)" : "Escuro (Dark)"}**\n✓ Preset de Layout: **${design.style.toUpperCase()}**\n✓ Bordas: **${design.border}**\n\nQual o próximo passo de design?`,
+          text: `Entendido! Reestruturei por completo o website de **${design.name}** com as tuas cores favoritas.\n\nFicha Técnica do Design System:\n✓ Cor Principal: **${design.primaryColor}**\n✓ Modo Escuro/Claro: **${design.isLightMode ? "Claro" : "Escuro"}**\n✓ Preset de Layout: **${design.style.toUpperCase()}**\n✓ Bordas: **${design.border}**\n\nQual o próximo passo de design?`,
           timestamp: new Date()
         }
       ]);
@@ -411,6 +415,46 @@ export default function ConversationalCopilotBuilder() {
     }, 1500);
   };
 
+  const handleSyncToSupabase = async (
+    name = brandName, 
+    cat = category, 
+    desc = description, 
+    prim = primaryColor, 
+    seco = secondaryColor, 
+    light = isLightMode, 
+    style = brandStyle, 
+    border = borderRadius, 
+    font = fontFamily, 
+    shadow = shadowStyle, 
+    spacing = spacingScale, 
+    activeFeats = features
+  ) => {
+    // Serialize design vars including custom code widgets
+    const serializedPalette = `${prim}:${seco}:${light}:${style}:${border}:${font}:${shadow}:${spacing}:${encodeURIComponent(customCSS)}:${encodeURIComponent(customHTML)}:${encodeURIComponent(embedCode)}`;
+
+    const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const randomHash = Math.random().toString(36).substring(2, 6);
+    const websiteUrl = editId 
+      ? `${slug}.mdsites.app`
+      : `${slug || "site"}-${randomHash}.mdsites.app`;
+
+    const payload = {
+      name,
+      category: cat,
+      description: desc,
+      palette: serializedPalette,
+      features: activeFeats,
+      url: websiteUrl,
+      status: "Publicado"
+    };
+
+    if (editId) {
+      await supabase.from("websites").update(payload).eq("id", editId);
+    } else {
+      await supabase.from("websites").insert([payload]);
+    }
+  };
+
   const handleSurpriseMe = () => {
     const creativeIdeas = [
       "Quero um website rosa e roxo estilo Notion.",
@@ -422,10 +466,36 @@ export default function ConversationalCopilotBuilder() {
     handleSend(randomPrompt);
   };
 
+  // Reorder features list helper (Manual visual builder action)
+  const moveFeature = (index: number, direction: "up" | "down") => {
+    const nextFeats = [...features];
+    const targetIdx = direction === "up" ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= nextFeats.length) return;
+    const temp = nextFeats[index];
+    nextFeats[index] = nextFeats[targetIdx];
+    nextFeats[targetIdx] = temp;
+    setFeatures(nextFeats);
+    handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, nextFeats);
+  };
+
+  const removeFeature = (feat: string) => {
+    const next = features.filter(f => f !== feat);
+    setFeatures(next);
+    handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, next);
+  };
+
+  const addFeature = (feat: string) => {
+    if (!features.includes(feat)) {
+      const next = [...features, feat];
+      setFeatures(next);
+      handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, next);
+    }
+  };
+
   // Resolve dynamic colors objects to bind inline style tags
   const getThemeClasses = () => {
     const contrastColor = (hex: string) => {
-      if (hex === "#ffffff" || hex === "#ffffff" || hex === "#f8fafc") return "#0f172a";
+      if (hex === "#ffffff" || hex === "#f8fafc") return "#0f172a";
       return "#ffffff";
     };
 
@@ -541,6 +611,11 @@ export default function ConversationalCopilotBuilder() {
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
       
+      {/* Dynamic Style tags for developers low-code style overrides */}
+      {customCSS && (
+        <style dangerouslySetInnerHTML={{ __html: customCSS }} />
+      )}
+
       {/* Background graphic */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20 opacity-30 pointer-events-none"
@@ -569,83 +644,396 @@ export default function ConversationalCopilotBuilder() {
         />
       </header>
 
-      {/* Two Columns Area */}
+      {/* Three Tabs Controller Panel */}
       <div className="flex-1 flex overflow-hidden">
         
-        {/* Left Column: AI Copilot Chat panel */}
+        {/* Left Column: Switchable visual panels */}
         <div className="w-full lg:w-[480px] border-r border-slate-800/80 flex flex-col bg-slate-950/40 backdrop-blur-md relative z-20 flex-shrink-0">
-          <div className="p-4 border-b border-slate-800/80 bg-slate-950/50 flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
-              AI Designer Conversacional
-            </span>
-            <button 
-              onClick={handleSurpriseMe}
-              className="text-[10px] font-bold text-brand-gold hover:text-white bg-brand-gold/15 hover:bg-brand-gold/25 px-2.5 py-1.5 rounded-md transition-all flex items-center gap-1.5 border border-brand-gold/25"
+          
+          {/* Header tab controller */}
+          <div className="grid grid-cols-3 border-b border-slate-850 bg-slate-950">
+            <button
+              onClick={() => setActiveTab("copilot")}
+              className={`py-3.5 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 transition-all ${
+                activeTab === "copilot" ? "text-brand-gold border-brand-gold bg-white/5" : "text-slate-450 border-transparent hover:text-white"
+              }`}
             >
-              ✨ Surpreende-me
+              <MessageSquare className="w-4.5 h-4.5 text-brand-gold" />
+              Copilot Chat
+            </button>
+            <button
+              onClick={() => setActiveTab("visual")}
+              className={`py-3.5 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 transition-all ${
+                activeTab === "visual" ? "text-brand-gold border-brand-gold bg-white/5" : "text-slate-450 border-transparent hover:text-white"
+              }`}
+            >
+              <Layout className="w-4.5 h-4.5 text-brand-gold" />
+              Editor Visual
+            </button>
+            <button
+              onClick={() => setActiveTab("code")}
+              className={`py-3.5 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 transition-all ${
+                activeTab === "code" ? "text-brand-gold border-brand-gold bg-white/5" : "text-slate-450 border-transparent hover:text-white"
+              }`}
+            >
+              <Code className="w-4.5 h-4.5 text-brand-gold" />
+              Código Low-Code
             </button>
           </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((msg, index) => (
-              <div key={index} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
-                <div className={`p-4 rounded-2xl max-w-[85%] text-xs leading-relaxed ${
-                  msg.sender === "user" 
-                    ? "bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-blue-dark font-semibold rounded-tr-none" 
-                    : "bg-slate-900 border border-slate-800 text-slate-250 rounded-tl-none space-y-3"
-                }`}>
-                  <p className="whitespace-pre-line">{msg.text}</p>
-                </div>
+          {/* TAB 1: AI COPILOT CHAT PANEL */}
+          {activeTab === "copilot" && (
+            <div className="flex-1 flex flex-col justify-between overflow-hidden">
+              <div className="p-4 border-b border-slate-800/80 bg-slate-950/50 flex items-center justify-between flex-shrink-0">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
+                  AI Designer Conversacional
+                </span>
+                <button 
+                  onClick={handleSurpriseMe}
+                  className="text-[10px] font-bold text-brand-gold hover:text-white bg-brand-gold/15 hover:bg-brand-gold/25 px-2.5 py-1.5 rounded-md transition-all border border-brand-gold/25"
+                >
+                  ✨ Surpreende-me
+                </button>
               </div>
-            ))}
 
-            {aiTyping && (
-              <div className="flex flex-col items-start space-y-2">
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-350 space-y-2.5 rounded-tl-none w-[80%]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping" />
-                    <span className="font-bold text-white">O Copilot está a redesenhar...</span>
-                  </div>
-                  {activeLogs.length > 0 && (
-                    <div className="space-y-1 font-mono text-[10px] text-[#10b981] border-t border-slate-850 pt-2">
-                      {activeLogs.map((log, lIdx) => (
-                        <div key={lIdx}>{log}</div>
-                      ))}
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
+                    <div className={`p-4 rounded-2xl max-w-[85%] text-xs leading-relaxed ${
+                      msg.sender === "user" 
+                        ? "bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-blue-dark font-semibold rounded-tr-none" 
+                        : "bg-slate-900 border border-slate-800 text-slate-250 rounded-tl-none space-y-3"
+                    }`}>
+                      <p className="whitespace-pre-line">{msg.text}</p>
                     </div>
-                  )}
+                  </div>
+                ))}
+
+                {aiTyping && (
+                  <div className="flex flex-col items-start space-y-2">
+                    <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-350 space-y-2.5 rounded-tl-none w-[80%]">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping" />
+                        <span className="font-bold text-white">O Copilot está a redesenhar...</span>
+                      </div>
+                      {activeLogs.length > 0 && (
+                        <div className="space-y-1 font-mono text-[10px] text-[#10b981] border-t border-slate-850 pt-2">
+                          {activeLogs.map((log, lIdx) => (
+                            <div key={lIdx}>{log}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Bottom Chat input area */}
+              <div className="p-4 border-t border-slate-800/85 bg-slate-950/60 flex-shrink-0">
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSend(inputValue);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Peça qualquer cor (Ex: 'Quero rosa e roxo')"
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
+                  />
+                  <button
+                    type="submit"
+                    disabled={aiTyping || !inputValue.trim()}
+                    className="p-3 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:from-amber-400 text-brand-blue-dark transition-all disabled:opacity-40 flex items-center justify-center"
+                  >
+                    <Send className="w-4.5 h-4.5" />
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: MANUAL VISUAL LAYOUT & DESIGN SYSTEM EDITOR */}
+          {activeTab === "visual" && (
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              
+              {/* Brand presets / styling options */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-slate-350 uppercase tracking-widest border-b border-slate-850 pb-1.5">Design System Manual</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Preset de Layout</label>
+                    <select
+                      value={brandStyle}
+                      onChange={(e) => {
+                        setBrandStyle(e.target.value);
+                        handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, e.target.value);
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    >
+                      {["default", "apple", "tesla", "stripe", "notion", "linear", "vercel", "airbnb"].map(st => (
+                        <option key={st} value={st}>{st.toUpperCase()}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-455 uppercase block mb-1">Tipografia</label>
+                    <select
+                      value={fontFamily}
+                      onChange={(e) => {
+                        setFontFamily(e.target.value);
+                        handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, e.target.value);
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    >
+                      {["sans", "mono", "display", "serif"].map(fn => (
+                        <option key={fn} value={fn}>{fn.toUpperCase()}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Bordas / Cantos</label>
+                    <select
+                      value={borderRadius}
+                      onChange={(e) => {
+                        setBorderRadius(e.target.value);
+                        handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, e.target.value);
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    >
+                      {["none", "md", "xl", "full"].map(bd => (
+                        <option key={bd} value={bd}>{bd.toUpperCase()}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-455 uppercase block mb-1">Margens / Spacing</label>
+                    <select
+                      value={spacingScale}
+                      onChange={(e) => {
+                        setSpacingScale(e.target.value);
+                        handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, e.target.value);
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    >
+                      {["compact", "normal", "wide"].map(sp => (
+                        <option key={sp} value={sp}>{sp.toUpperCase()}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Accent and BG Color Pickers */}
+                <div className="grid grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase block mb-1">Cor de Acento (Hex)</label>
+                    <div className="flex gap-1.5">
+                      <input 
+                        type="color" 
+                        value={primaryColor} 
+                        onChange={(e) => {
+                          setPrimaryColor(e.target.value);
+                          handleSyncToSupabase(brandName, category, description, e.target.value);
+                        }}
+                        className="w-8 h-8 rounded border border-slate-800 cursor-pointer"
+                      />
+                      <input 
+                        type="text" 
+                        value={primaryColor} 
+                        onChange={(e) => {
+                          setPrimaryColor(e.target.value);
+                          handleSyncToSupabase(brandName, category, description, e.target.value);
+                        }}
+                        className="flex-1 bg-slate-900 border border-slate-800 rounded p-1.5 text-[10px] text-white focus:outline-none text-center uppercase font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-455 uppercase block mb-1">Cor de Fundo (Hex)</label>
+                    <div className="flex gap-1.5">
+                      <input 
+                        type="color" 
+                        value={secondaryColor} 
+                        onChange={(e) => {
+                          setSecondaryColor(e.target.value);
+                          handleSyncToSupabase(brandName, category, description, primaryColor, e.target.value);
+                        }}
+                        className="w-8 h-8 rounded border border-slate-800 cursor-pointer"
+                      />
+                      <input 
+                        type="text" 
+                        value={secondaryColor} 
+                        onChange={(e) => {
+                          setSecondaryColor(e.target.value);
+                          handleSyncToSupabase(brandName, category, description, primaryColor, e.target.value);
+                        }}
+                        className="flex-1 bg-slate-900 border border-slate-800 rounded p-1.5 text-[10px] text-white focus:outline-none text-center uppercase font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input 
+                      type="checkbox"
+                      checked={isLightMode}
+                      onChange={(e) => {
+                        setIsLightMode(e.target.checked);
+                        handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, e.target.checked);
+                      }}
+                      className="rounded border-slate-800 bg-slate-900 text-brand-gold focus:ring-0 focus:ring-offset-0"
+                    />
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Ativar Modo Claro (Light Mode)</span>
+                  </label>
+                </div>
+
+              </div>
+
+              {/* Sections Reordering list */}
+              <div className="space-y-3 pt-3">
+                <h3 className="text-xs font-bold text-slate-350 uppercase tracking-widest border-b border-slate-850 pb-1.5">Grelha de Secções</h3>
+                
+                <div className="space-y-2">
+                  {features.map((feat, idx) => (
+                    <div key={feat} className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs">
+                      <span className="font-bold text-slate-300 capitalize">{feat}</span>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => moveFeature(idx, "up")}
+                          className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white"
+                          title="Mover para Cima"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => moveFeature(idx, "down")}
+                          className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white"
+                          title="Mover para Baixo"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => removeFeature(feat)}
+                          className="p-1 hover:bg-rose-500/10 rounded text-rose-400"
+                          title="Remover Secção"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add new components buttons */}
+                <div className="pt-2 space-y-2">
+                  <h4 className="text-[10px] uppercase font-bold text-slate-500">Adicionar Componente:</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { key: "servicos", name: "Serviços" },
+                      { key: "galeria", name: "Galeria / Portfolio" },
+                      { key: "faq", name: "Perguntas (FAQ)" },
+                      { key: "depoimentos", name: "Testemunhos" },
+                      { key: "contactos", name: "Contactos" },
+                      { key: "whatsapp", name: "Botão WhatsApp" }
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={() => addFeature(item.key)}
+                        disabled={features.includes(item.key)}
+                        className="px-2.5 py-1.5 text-[9px] font-bold border border-slate-800 hover:border-brand-gold/30 bg-[#111827] rounded text-slate-300 disabled:opacity-40"
+                      >
+                        + {item.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {/* Bottom Chat input area */}
-          <div className="p-4 border-t border-slate-800/85 bg-slate-950/60">
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend(inputValue);
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Peça qualquer cor (Ex: 'Quero rosa e roxo')"
-                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
-              />
-              <button
-                type="submit"
-                disabled={aiTyping || !inputValue.trim()}
-                className="p-3 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:from-amber-400 text-brand-blue-dark transition-all disabled:opacity-40 flex items-center justify-center"
-              >
-                <Send className="w-4.5 h-4.5" />
-              </button>
-            </form>
-          </div>
+            </div>
+          )}
+
+          {/* TAB 3: DEVELOPER LOW-CODE / CUSTOM CODE PANEL */}
+          {activeTab === "code" && (
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              
+              <div className="space-y-1">
+                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest border-b border-slate-850 pb-1">Low-Code & Código Custom</h3>
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  Adiciona código HTML, CSS ou JavaScript. Podes colar scripts de terceiros ou Iframe Embeds (YouTube, Maps, etc.).
+                </p>
+              </div>
+
+              {/* Dynamic CSS styles box */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Injetar CSS Customizado (Global)</label>
+                <textarea
+                  rows={6}
+                  value={customCSS}
+                  onChange={(e) => {
+                    setCustomCSS(e.target.value);
+                    handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, features);
+                  }}
+                  placeholder="Ex: .services-card { transform: rotate(1deg); } \n h1 { color: #facc15 !important; }"
+                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                />
+              </div>
+
+              {/* Iframe widget box */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Inserir Embed Code (Iframe / Widgets)</label>
+                <textarea
+                  rows={4}
+                  value={embedCode}
+                  onChange={(e) => {
+                    setEmbedCode(e.target.value);
+                    handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, features);
+                  }}
+                  placeholder="Cola aqui qualquer iframe de YouTube, Spotify, Google Maps, Calendly, etc."
+                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                />
+              </div>
+
+              {/* Dynamic HTML components creation */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Componente HTML Customizado</label>
+                <textarea
+                  rows={6}
+                  value={customHTML}
+                  onChange={(e) => {
+                    setCustomHTML(e.target.value);
+                    handleSyncToSupabase(brandName, category, description, primaryColor, secondaryColor, isLightMode, brandStyle, borderRadius, fontFamily, shadowStyle, spacingScale, features);
+                  }}
+                  placeholder="Ex: <div class='p-4 bg-emerald-500/10 border rounded'>Olá do Programador!</div>"
+                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                />
+              </div>
+
+              {/* Global Header Script box */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Scripts Adicionais no Head (Google Analytics / Pixel)</label>
+                <textarea
+                  rows={3}
+                  value={globalHeaderScript}
+                  onChange={(e) => setGlobalHeaderScript(e.target.value)}
+                  placeholder="Ex: <script src='...'></script>"
+                  className="w-full bg-[#050811] border border-slate-850 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-brand-gold/30 font-mono resize-none"
+                />
+              </div>
+
+            </div>
+          )}
+
         </div>
 
         {/* Right Column: Real-time Live Preview Browser */}
@@ -780,7 +1168,7 @@ export default function ConversationalCopilotBuilder() {
                         <h1 className="text-3.5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                           {previewContent.heroTitle}
                         </h1>
-                        <p className="text-xs text-slate-505 leading-relaxed max-w-lg">
+                        <p className="text-xs text-slate-500 leading-relaxed max-w-lg">
                           {previewContent.heroSubtitle}
                         </p>
                         <div className="pt-2">
@@ -832,7 +1220,7 @@ export default function ConversationalCopilotBuilder() {
                           <h1 className="text-3.5xl font-extrabold leading-tight text-white tracking-tight">
                             {previewContent.heroTitle}
                           </h1>
-                          <p className="text-xs leading-relaxed text-slate-300">
+                          <p className="text-xs leading-relaxed text-slate-350">
                             {previewContent.heroSubtitle}
                           </p>
                           <button className="px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:shadow-lg text-white font-bold text-xs flex items-center gap-1">
@@ -884,12 +1272,22 @@ export default function ConversationalCopilotBuilder() {
                       </div>
                     )}
 
+                    {/* DYNAMIC LOW-CODE EMBED COMPONENT PANEL */}
+                    {embedCode && (
+                      <div className="py-12 px-8 max-w-4xl mx-auto text-center border-t border-white/5">
+                        <div 
+                          className="w-full flex items-center justify-center overflow-hidden" 
+                          dangerouslySetInnerHTML={{ __html: embedCode }}
+                        />
+                      </div>
+                    )}
+
                     {/* SERVICES SECTION */}
                     {features.includes("servicos") && (
                       <div className={`${getSpacingClass()} px-8 border-t max-w-4xl mx-auto`}>
                         <div className="text-center space-y-1.5">
                           <h3 className="text-xl font-bold">Nossos Serviços</h3>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soluções feitas para si</p>
+                          <p className="text-[10px] text-slate-505 uppercase tracking-wider">Soluções feitas para si</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {previewContent.services.map((srv, idx) => (
@@ -919,7 +1317,7 @@ export default function ConversationalCopilotBuilder() {
                       <div className={`${getSpacingClass()} px-8 border-t max-w-4xl mx-auto`}>
                         <div className="text-center space-y-1.5">
                           <h3 className="text-xl font-bold">Portfólio / Galeria</h3>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wider">Nosso trabalho recente</p>
+                          <p className="text-[10px] text-slate-505 uppercase tracking-wider">Nosso trabalho recente</p>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                           {[1, 2, 3].map(i => (
@@ -933,6 +1331,14 @@ export default function ConversationalCopilotBuilder() {
                           ))}
                         </div>
                       </div>
+                    )}
+
+                    {/* LOW-CODE DYNAMIC HTML SECTION */}
+                    {customHTML && (
+                      <div 
+                        className="py-12 px-8 max-w-4xl mx-auto border-t border-white/5"
+                        dangerouslySetInnerHTML={{ __html: customHTML }}
+                      />
                     )}
 
                     {/* FAQ SECTION */}
