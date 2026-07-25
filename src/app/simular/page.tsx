@@ -32,7 +32,6 @@ interface Message {
   sender: "ai" | "user";
   text: string;
   timestamp: Date;
-  statusLogs?: string[];
   suggestions?: string[];
 }
 
@@ -45,19 +44,15 @@ export default function ConversationalCopilotBuilder() {
   const [activeLogs, setActiveLogs] = useState<string[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // Core brand settings
+  // Core brand content
   const [brandName, setBrandName] = useState("A Minha Marca");
   const [category, setCategory] = useState("Serviços Profissionais");
   const [description, setDescription] = useState("Descreve o teu negócio e veja a IA criar os conteúdos.");
-  const [palette, setPalette] = useState("blue-gold");
   const [features, setFeatures] = useState<string[]>(["servicos", "contactos"]);
 
-  // Design System States (Copilot v4.0 Library of Components)
-  const [heroVariant, setHeroVariant] = useState("modern"); // minimalist, modern, premium, creative, corporate, restaurant, hotel, saas, portfolio, loja, fotografia, luxo
-  const [headerVariant, setHeaderVariant] = useState("sticky"); // minimal, glass, transparent, sticky, center, split, corporate, premium
-  const [cardVariant, setCardVariant] = useState("glass"); // minimal, premium, glass, gradient, rounded, square, elevated, interactive
-  const [ctaVariant, setCtaVariant] = useState("modern"); // modern, outline, filled, animated, gradient, floating
-  const [footerVariant, setFooterVariant] = useState("corporate"); // minimal, corporate, premium, newsletter, multi-column
+  // Designer System states (Copilot v4.0+ Architectural Layout Selector)
+  const [brandStyle, setBrandStyle] = useState("default"); // apple, tesla, stripe, notion, linear, vercel, airbnb, default
+  const [palette, setPalette] = useState("blue-gold");
   const [borderRadius, setBorderRadius] = useState("xl"); // none, md, xl, full
   const [fontFamily, setFontFamily] = useState("sans"); // sans, mono, display, serif
   const [shadowStyle, setShadowStyle] = useState("glow"); // none, sm, lg, glow
@@ -68,19 +63,13 @@ export default function ConversationalCopilotBuilder() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Welcome Message from AI Copilot
+  // Initial Welcome
   useEffect(() => {
     setMessages([
       {
         sender: "ai",
-        text: "Olá! Sou o AI Copilot v4.0 da MD Sites. 🤖\n\nSou o teu Diretor Criativo e Designer de UI/UX dedicado. Não te limites a templates fixos. Descreve a tua ideia com linguagem natural:\n\n• *'Quero um site estilo Apple minimalista em tons cinza'* \n• *'Cria um site premium preto e dourado para uma marca de luxo'* \n• *'Cria um layout futurista Tesla com sombras neon'* \n• *'Cria um site moderno parecido com a Stripe'* \n\nEu cuidarei de todo o Design System e da estrutura!",
-        timestamp: new Date(),
-        suggestions: [
-          "Cria um website minimalista estilo Apple.",
-          "Cria um site de carros elétricos estilo Tesla.",
-          "Quero um design moderno inspirado no Stripe.",
-          "Faz um portfólio criativo inspirado no Spotify."
-        ]
+        text: "Olá! Sou o AI Copilot da MD Sites. 🤖\n\nSou o teu parceiro criativo, designer UI/UX e programador. Descreve simplesmente o website que pretendes de forma livre e natural.\n\nExperimenta pedir estilos de marcas icónicas:\n• *'Quero um site estilo Stripe moderno para SaaS'*\n• *'Cria um site minimalista estilo Notion em claro'*\n• *'Faz um layout futurista escuro estilo Linear'*\n• *'Quero um restaurante italiano estilo Apple'*\n\nEu decido a estrutura, paleta, componentes e integrações ideais para ti!",
+        timestamp: new Date()
       }
     ]);
   }, []);
@@ -105,19 +94,15 @@ export default function ConversationalCopilotBuilder() {
             setFeatures(data.features);
             setIsCompleted(true);
 
-            // Deserialize complex v4.0 design params from database palette field
+            // Deserialize complex design styles from palette column
             const parts = data.palette.split(":");
             if (parts.length > 1) {
               setPalette(parts[0]);
-              setHeroVariant(parts[1] || "modern");
-              setCardVariant(parts[2] || "glass");
-              setBorderRadius(parts[3] || "xl");
-              setFontFamily(parts[4] || "sans");
-              setShadowStyle(parts[5] || "glow");
-              setHeaderVariant(parts[6] || "sticky");
-              setCtaVariant(parts[7] || "modern");
-              setFooterVariant(parts[8] || "corporate");
-              setSpacingScale(parts[9] || "normal");
+              setBrandStyle(parts[1] || "default");
+              setBorderRadius(parts[2] || "xl");
+              setFontFamily(parts[3] || "sans");
+              setShadowStyle(parts[4] || "glow");
+              setSpacingScale(parts[5] || "normal");
             } else {
               setPalette(data.palette);
             }
@@ -127,12 +112,7 @@ export default function ConversationalCopilotBuilder() {
               {
                 sender: "ai",
                 text: `Carreguei com sucesso o website **${data.name}**. Que modificações de design ou novas secções gostarias que eu aplicasse no Design System hoje?`,
-                timestamp: new Date(),
-                suggestions: [
-                  "Mudar para estilo Apple minimalista",
-                  "Mudar para estilo Tesla futurista",
-                  "Adicionar secção de FAQ"
-                ]
+                timestamp: new Date()
               }
             ]);
           }
@@ -147,81 +127,7 @@ export default function ConversationalCopilotBuilder() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, aiTyping]);
 
-  // Dynamic Generator of Visual Ideas (✨ Gerar Outra Ideia)
-  const handleGenerateOtherIdea = () => {
-    if (!isCompleted) {
-      handleSend("Cria um website profissional.");
-      return;
-    }
-
-    setAiTyping(true);
-    setActiveLogs([
-      "❯ A rebarbar Design System...",
-      "❯ A baralhar Biblioteca de Componentes...",
-      "❯ A aplicar nova paleta e tipografia...",
-      "❯ A reorganizar grelha de secções..."
-    ]);
-
-    setTimeout(() => {
-      // Randomize everything except text content
-      const heroes = ["minimalist", "modern", "premium", "creative", "corporate", "restaurant", "hotel", "saas", "portfolio", "loja", "fotografia", "luxo"];
-      const headers = ["minimal", "glass", "transparent", "sticky", "center", "split", "corporate", "premium"];
-      const cards = ["minimal", "premium", "glass", "gradient", "rounded", "square", "elevated", "interactive"];
-      const ctas = ["modern", "outline", "filled", "animated", "gradient", "floating"];
-      const footers = ["minimal", "corporate", "premium", "newsletter", "multi-column"];
-      const borders = ["none", "md", "xl", "full"];
-      const fonts = ["sans", "mono", "display", "serif"];
-      const shadows = ["none", "sm", "lg", "glow"];
-      const palettes = ["blue-gold", "indigo-purple", "emerald-dark", "mono-light"];
-      const spacings = ["compact", "normal", "wide"];
-
-      const rHero = heroes[Math.floor(Math.random() * heroes.length)];
-      const rHeader = headers[Math.floor(Math.random() * headers.length)];
-      const rCard = cards[Math.floor(Math.random() * cards.length)];
-      const rCta = ctas[Math.floor(Math.random() * ctas.length)];
-      const rFooter = footers[Math.floor(Math.random() * footers.length)];
-      const rBorder = borders[Math.floor(Math.random() * borders.length)];
-      const rFont = fonts[Math.floor(Math.random() * fonts.length)];
-      const rShadow = shadows[Math.floor(Math.random() * shadows.length)];
-      const rPalette = palettes[Math.floor(Math.random() * palettes.length)];
-      const rSpacing = spacings[Math.floor(Math.random() * spacings.length)];
-
-      setHeroVariant(rHero);
-      setHeaderVariant(rHeader);
-      setCardVariant(rCard);
-      setCtaVariant(rCta);
-      setFooterVariant(rFooter);
-      setBorderRadius(rBorder);
-      setFontFamily(rFont);
-      setShadowStyle(rShadow);
-      setPalette(rPalette);
-      setSpacingScale(rSpacing);
-
-      setMessages(prev => [
-        ...prev,
-        {
-          sender: "ai",
-          text: `Gerei uma nova proposta visual para **${brandName}** mantendo os mesmos conteúdos! Mudei o Hero para *${rHero}*, a paleta para *${rPalette}*, tipografia para *${rFont}* e cartões para *${rCard}*. O que achas desta nova alternativa?`,
-          timestamp: new Date(),
-          suggestions: [
-            "Gosto desta, manter!",
-            "Gerar outra ideia visual",
-            "Mudar para estilo minimalista"
-          ]
-        }
-      ]);
-
-      canvasConfetti({
-        particleCount: 100,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
-      setAiTyping(false);
-      setActiveLogs([]);
-    }, 1400);
-  };
-
-  // AI Prompt Parser (Copilot v4.0 Parser)
+  // AI Prompt Parser (Architectural Layout Presets)
   const interpretUserPrompt = (prompt: string) => {
     const p = prompt.toLowerCase();
     
@@ -231,123 +137,106 @@ export default function ConversationalCopilotBuilder() {
     let detectedPalette = palette;
     let detectedFeatures = [...features];
 
-    // Design System variables
-    let dHero = heroVariant;
-    let dHeader = headerVariant;
-    let dCard = cardVariant;
-    let dCta = ctaVariant;
-    let dFooter = footerVariant;
+    // Design layout defaults
+    let dStyle = brandStyle;
     let dBorder = borderRadius;
     let dFont = fontFamily;
     let dShadow = shadowStyle;
     let dSpacing = spacingScale;
 
-    // A. INSPIRING BRANDS
+    // 1. BRAND ARCHITECTURAL PRESETS
     if (p.includes("apple")) {
+      dStyle = "apple";
       detectedPalette = "mono-light";
-      dHero = "minimalist";
-      dHeader = "minimal";
-      dCard = "minimal";
-      dCta = "outline";
-      dFooter = "minimal";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "none";
       dSpacing = "wide";
-      detectedDesc = "Interface minimalista ultra limpa inspirada nos padrões visuais da Apple.";
+      detectedDesc = "Website minimalista com foco em tipografia fina, grelha limpa e espaço em branco generoso.";
     } 
     else if (p.includes("tesla")) {
+      dStyle = "tesla";
       detectedPalette = "indigo-purple";
-      dHero = "premium";
-      dHeader = "sticky";
-      dCard = "premium";
-      dCta = "filled";
-      dFooter = "premium";
       dBorder = "md";
       dFont = "display";
       dShadow = "glow";
       dSpacing = "normal";
-      detectedDesc = "Layout futurista e minimalista imersivo com cartões elevados e glows coloridos.";
+      detectedDesc = "Layout de ecrã imersivo, com tipografia arrojada e visual futurista de alta fidelidade.";
     }
     else if (p.includes("stripe")) {
+      dStyle = "stripe";
       detectedPalette = "indigo-purple";
-      dHero = "saas";
-      dHeader = "split";
-      dCard = "interactive";
-      dCta = "gradient";
-      dFooter = "multi-column";
       dBorder = "xl";
       dFont = "sans";
       dShadow = "lg";
       dSpacing = "normal";
-      detectedDesc = "Design moderno SaaS focado em conversão, com grelhas complexas e botões em gradiente.";
+      detectedDesc = "Estética SaaS premium com gradientes oblíquos, grelhas complexas e botões dinâmicos.";
     }
-    else if (p.includes("spotify")) {
-      detectedPalette = "indigo-purple";
-      dHero = "creative";
-      dHeader = "glass";
-      dCard = "glass";
-      dCta = "floating";
-      dFooter = "newsletter";
-      dBorder = "full";
-      dFont = "mono";
-      dShadow = "glow";
+    else if (p.includes("notion")) {
+      dStyle = "notion";
+      detectedPalette = "mono-light";
+      dBorder = "md";
+      dFont = "sans";
+      dShadow = "none";
       dSpacing = "compact";
+      detectedDesc = "Estrutura limpa estilo Notion, com barra lateral de navegação, emojis e margens finas de contraste.";
     }
-
-    // B. DIFFERENT PERSONALITIES
-    if (p.includes("luxo") || p.includes("premium") || p.includes("elegante")) {
-      detectedPalette = "blue-gold";
-      dHero = "luxo";
-      dHeader = "premium";
-      dCard = "premium";
-      dCta = "animated";
-      dFooter = "premium";
+    else if (p.includes("linear")) {
+      dStyle = "linear";
+      detectedPalette = "indigo-purple"; // Represents deep dark slate
+      dBorder = "md";
+      dFont = "mono";
+      dShadow = "none";
+      dSpacing = "compact";
+      detectedDesc = "Visual técnico ultra escuro com contornos finos, acentos de código e secções estruturadas.";
+    }
+    else if (p.includes("vercel")) {
+      dStyle = "vercel";
+      detectedPalette = "mono-light"; // Stark black/white mode
       dBorder = "none";
-      dFont = "serif";
-      dShadow = "lg";
+      dFont = "mono";
+      dShadow = "none";
+      dSpacing = "normal";
+      detectedDesc = "Visual stark minimalista com cantos retos, contrastes a preto e branco e cabeçalhos arrojados.";
     }
-    else if (p.includes("infantil") || p.includes("divertido") || p.includes("crianças")) {
-      detectedPalette = "emerald-dark";
-      dHero = "creative";
-      dHeader = "center";
-      dCard = "rounded";
-      dCta = "floating";
-      dFooter = "newsletter";
-      dBorder = "full";
-      dFont = "display";
-      dShadow = "lg";
+    else if (p.includes("airbnb")) {
+      dStyle = "airbnb";
+      detectedPalette = "emerald-dark"; // Soft layout with red accent
+      dBorder = "xl";
+      dFont = "sans";
+      dShadow = "sm";
+      dSpacing = "normal";
+      detectedDesc = "Grelha acolhedora de fotos, focada em simplicidade, contornos arredondados e botões chamativos.";
     }
 
-    // C. CATEGORIES & SECTORS
+    // 2. SECTORS & SERVICES AUTO-FEATURES
     if (p.includes("restaurante") || p.includes("pizzaria") || p.includes("comida")) {
-      detectedCat = "Restaurante & Cafetaria";
-      detectedDesc = "Experiência de assinatura gastronómica autêntica.";
-      dHero = "restaurant";
-      dHeader = "classic";
+      detectedCat = "Restaurante & Gastronomia";
+      detectedDesc = "Um menu de sabores requintados feito por profissionais de cozinha.";
       if (!detectedFeatures.includes("galeria")) detectedFeatures.push("galeria");
+      if (!detectedFeatures.includes("whatsapp")) detectedFeatures.push("whatsapp");
+      if (!detectedFeatures.includes("depoimentos")) detectedFeatures.push("depoimentos");
     }
-    else if (p.includes("advogado") || p.includes("consultoria") || p.includes("juridico")) {
-      detectedCat = "Apoio Jurídico & Fiscal";
-      detectedDesc = "Representação e aconselhamento profissional focado em rigor e confiança.";
-      dHero = "corporate";
-      dHeader = "corporate";
-      dFont = "serif";
+    else if (p.includes("advogado") || p.includes("clinica") || p.includes("medico")) {
+      detectedCat = "Clínica & Apoio Profissional";
+      detectedDesc = "Atendimento rigoroso focado na excelência e bem-estar do cliente.";
       if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
+      if (!detectedFeatures.includes("contactos")) detectedFeatures.push("contactos");
     }
 
-    // D. DYNAMIC ADJUSTMENTS
+    // 3. REACTIVE ADJUSTMENTS (Colors / Fonts / Spacings)
     if (p.includes("azul") || p.includes("indigo")) detectedPalette = "indigo-purple";
     if (p.includes("verde") || p.includes("esmeralda")) detectedPalette = "emerald-dark";
     if (p.includes("dourado") || p.includes("preto")) detectedPalette = "blue-gold";
     if (p.includes("claro") || p.includes("branco")) detectedPalette = "mono-light";
 
+    if (p.includes("espaço") || p.includes("afasta")) dSpacing = "wide";
+    if (p.includes("compacto") || p.includes("junto")) dSpacing = "compact";
     if (p.includes("arredondado") || p.includes("redondo")) dBorder = "full";
     if (p.includes("quadrado") || p.includes("reto")) dBorder = "none";
     if (p.includes("serif")) dFont = "serif";
     if (p.includes("mono")) dFont = "mono";
 
-    // E. WIDGET FEATURES
     if (p.includes("whatsapp")) {
       if (!detectedFeatures.includes("whatsapp")) detectedFeatures.push("whatsapp");
     }
@@ -358,7 +247,7 @@ export default function ConversationalCopilotBuilder() {
       if (!detectedFeatures.includes("faq")) detectedFeatures.push("faq");
     }
 
-    // Brand name matching
+    // Extract potential brand name
     const nameMatch = prompt.match(/chamad[oa]\s+["']?([^"']+)["']?/i) || prompt.match(/nome\s+["']?([^"']+)["']?/i);
     if (nameMatch && nameMatch[1]) {
       detectedName = nameMatch[1].trim();
@@ -370,11 +259,7 @@ export default function ConversationalCopilotBuilder() {
       description: detectedDesc,
       palette: detectedPalette,
       features: detectedFeatures,
-      hero: dHero,
-      header: dHeader,
-      card: dCard,
-      cta: dCta,
-      footer: dFooter,
+      style: dStyle,
       border: dBorder,
       font: dFont,
       shadow: dShadow,
@@ -391,10 +276,9 @@ export default function ConversationalCopilotBuilder() {
 
     const thoughts = [
       "❯ Analisando linguagem natural...",
-      "❯ Escolhendo variantes de header e hero...",
-      "❯ Re-calculando margens e espaçamento do Design System...",
-      "❯ Redigindo textos com IA...",
-      "❯ Sincronizando com a BD do Supabase..."
+      "❯ Reconfigurando grelhas de layout...",
+      "❯ Escolhendo presets estruturais do Design System...",
+      "❯ A gravar definições de marca no Supabase..."
     ];
 
     let tIdx = 0;
@@ -408,42 +292,38 @@ export default function ConversationalCopilotBuilder() {
     }, 200);
 
     setTimeout(async () => {
-      const parsed = interpretUserPrompt(text);
+      const design = interpretUserPrompt(text);
       
-      setBrandName(parsed.name);
-      setCategory(parsed.category);
-      setDescription(parsed.description);
-      setPalette(parsed.palette);
-      setFeatures(parsed.features);
+      setBrandName(design.name);
+      setCategory(design.category);
+      setDescription(design.description);
+      setPalette(design.palette);
+      setFeatures(design.features);
 
-      // Apply Layout v4.0 design updates
-      setHeroVariant(parsed.hero);
-      setHeaderVariant(parsed.header);
-      setCardVariant(parsed.card);
-      setCtaVariant(parsed.cta);
-      setFooterVariant(parsed.footer);
-      setBorderRadius(parsed.border);
-      setFontFamily(parsed.font);
-      setShadowStyle(parsed.shadow);
-      setSpacingScale(parsed.spacing);
+      // Apply Layout architecture parameters
+      setBrandStyle(design.style);
+      setBorderRadius(design.border);
+      setFontFamily(design.font);
+      setShadowStyle(design.shadow);
+      setSpacingScale(design.spacing);
 
       setIsCompleted(true);
 
-      // Serialize Design System variables inside the palette field
-      const serializedPalette = `${parsed.palette}:${parsed.hero}:${parsed.card}:${parsed.border}:${parsed.font}:${parsed.shadow}:${parsed.header}:${parsed.cta}:${parsed.footer}:${parsed.spacing}`;
+      // Serialize configurations for database column
+      const serializedPalette = `${design.palette}:${design.style}:${design.border}:${design.font}:${design.shadow}:${design.spacing}`;
 
-      const slug = parsed.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const slug = design.name.toLowerCase().replace(/[^a-z0-9]/g, "");
       const randomHash = Math.random().toString(36).substring(2, 6);
       const websiteUrl = editId 
         ? `${slug}.mdsites.app`
         : `${slug || "site"}-${randomHash}.mdsites.app`;
 
       const payload = {
-        name: parsed.name,
-        category: parsed.category,
-        description: parsed.description,
+        name: design.name,
+        category: design.category,
+        description: design.description,
         palette: serializedPalette,
-        features: parsed.features,
+        features: design.features,
         url: websiteUrl,
         status: "Publicado"
       };
@@ -454,26 +334,18 @@ export default function ConversationalCopilotBuilder() {
         await supabase.from("websites").insert([payload]);
       }
 
-      const nextSuggestions = [
-        "Mudar para estilo Apple minimalista",
-        "Mudar para estilo Tesla futurista",
-        "Mudar para estilo Stripe moderno",
-        "Gerar outra alternativa visual"
-      ];
-
       setMessages(prev => [
         ...prev,
         {
           sender: "ai",
-          text: `Construí um Design System dinâmico de alta fidelidade para **${parsed.name}**!\n\nJustificativa UX/UI:\nComo solicitou um estilo focado em *${text.substring(0, 30)}*, ativei o layout de Hero *${parsed.hero}*, botões em formato *${parsed.cta}*, com o espaçamento *${parsed.spacing}* e cantos *${parsed.border}*.\n\n✓ Layout de Hero: **${parsed.hero}**\n✓ Fontes: **${parsed.font}**\n✓ Spacing: **${parsed.spacing}**\n✓ Botões CTA: **${parsed.cta}**\n\nQue refinamento gostaria de fazer na estrutura do site?`,
-          timestamp: new Date(),
-          suggestions: nextSuggestions
+          text: `Entendido! Reestruturei por completo o layout de **${design.name}** para seguir a arquitetura visual **${design.style.toUpperCase()}**.\n\nExplicação do Design System:\n✓ Preset de Marca: *${design.style}*\n✓ Escala de Espaçamento: *${design.spacing}*\n✓ Bordas: *${design.border}*\n✓ Tipografia: *${design.font}*\n\nQue modificações estruturais gostarias de fazer a seguir?`,
+          timestamp: new Date()
         }
       ]);
 
       canvasConfetti({
-        particleCount: 120,
-        spread: 70,
+        particleCount: 100,
+        spread: 60,
         origin: { y: 0.6 }
       });
 
@@ -482,8 +354,48 @@ export default function ConversationalCopilotBuilder() {
     }, 1500);
   };
 
+  const handleSurpriseMe = () => {
+    const creativeIdeas = [
+      "Quero um website estilo Notion minimalista em tons claros.",
+      "Cria um site estilo Tesla futurista com brilho neon.",
+      "Quero um site estilo Stripe moderno com botões em gradiente.",
+      "Faz um site estilo Linear técnico ultra escuro com contornos finos."
+    ];
+    const randomPrompt = creativeIdeas[Math.floor(Math.random() * creativeIdeas.length)];
+    handleSend(randomPrompt);
+  };
+
   // Helper variables mappings for preview styles
   const getThemeClasses = () => {
+    if (brandStyle === "notion") {
+      return {
+        bg: "bg-[#FBFBFA]",
+        card: "bg-transparent border border-slate-200/80 shadow-none text-slate-800",
+        textAccent: "text-slate-900 font-bold",
+        btnAccent: "bg-slate-900 hover:bg-slate-800 text-white rounded shadow-sm",
+        btnOutline: "border-slate-350 hover:bg-slate-100 text-slate-900 rounded"
+      };
+    }
+    if (brandStyle === "linear") {
+      return {
+        bg: "bg-[#0b0c10]",
+        card: "bg-[#12131a] border border-slate-800/80 shadow-none text-slate-300",
+        textAccent: "text-purple-400 font-mono",
+        btnAccent: "bg-[#5c6bc0] hover:bg-[#3f51b5] text-white border border-[#7986cb]",
+        btnOutline: "border-slate-800 hover:bg-slate-900 text-white"
+      };
+    }
+    if (brandStyle === "vercel") {
+      return {
+        bg: "bg-black",
+        card: "bg-black border border-white/10 rounded-none text-white",
+        textAccent: "text-white font-bold",
+        btnAccent: "bg-white hover:bg-slate-100 text-black rounded-none font-bold",
+        btnOutline: "border-white/15 hover:bg-white/5 text-white rounded-none"
+      };
+    }
+
+    // Default palettes
     switch (palette) {
       case "emerald-dark":
         return {
@@ -524,6 +436,9 @@ export default function ConversationalCopilotBuilder() {
   const previewTheme = getThemeClasses();
 
   const getBorderRadiusClass = () => {
+    if (brandStyle === "vercel") return "rounded-none";
+    if (brandStyle === "notion") return "rounded";
+    
     switch (borderRadius) {
       case "none": return "rounded-none";
       case "md": return "rounded-md";
@@ -535,6 +450,7 @@ export default function ConversationalCopilotBuilder() {
   };
 
   const getFontFamilyClass = () => {
+    if (brandStyle === "vercel" || brandStyle === "linear") return "font-mono";
     switch (fontFamily) {
       case "mono": return "font-mono";
       case "serif": return "font-serif";
@@ -546,6 +462,7 @@ export default function ConversationalCopilotBuilder() {
   };
 
   const getShadowClass = () => {
+    if (brandStyle === "notion" || brandStyle === "vercel") return "shadow-none";
     switch (shadowStyle) {
       case "none": return "shadow-none border-white/5";
       case "sm": return "shadow-sm border-white/5";
@@ -595,26 +512,18 @@ export default function ConversationalCopilotBuilder() {
         { name: "Painel de Métricas", desc: "Dados consolidados em tempo real para tomada de decisões estratégicas." },
         { name: "Segurança de Dados", desc: "Criptografia avançada de ponta a ponta para proteger a sua informação." }
       ];
-    } else if (category.toLowerCase().includes("saúde") || category.toLowerCase().includes("estética")) {
-      heroTitle = `Cuide de si no ${brandName}`;
-      heroSubtitle = `Tratamentos e cuidados de excelência focados no seu bem-estar. ${description}`;
-      services = [
-        { name: "Tratamentos Especializados", desc: "Procedimentos modernos realizados por profissionais experientes." },
-        { name: "Consultas de Avaliação", desc: "Diagnóstico completo e plano de tratamento ajustado às suas necessidades." },
-        { name: "Produtos Premium", desc: "Utilização exclusiva de marcas conceituadas de elevada qualidade dermatológica." }
-      ];
     }
 
     return { heroTitle, heroSubtitle, services };
   };
 
   const previewContent = getGeneratedContent();
-  const isLight = palette === "mono-light";
+  const isLight = palette === "mono-light" || brandStyle === "notion";
 
   return (
     <div className="relative w-full h-screen bg-[#030712] overflow-hidden flex flex-col justify-between text-slate-100">
       
-      {/* Background decoration */}
+      {/* Background graphic */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20 opacity-30 pointer-events-none"
         style={{ backgroundImage: "url('/fundo-paginas.png')" }}
@@ -631,7 +540,7 @@ export default function ConversationalCopilotBuilder() {
             Sair do Copilot
           </button>
           <div className="w-[1px] h-4 bg-slate-800" />
-          <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">AI Designer Studio v4.0</span>
+          <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">AI Designer Agent v5.0</span>
         </div>
         <Image
           src="/logonovo.png"
@@ -642,7 +551,7 @@ export default function ConversationalCopilotBuilder() {
         />
       </header>
 
-      {/* Two Column Layout */}
+      {/* Two Columns Area */}
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Column: AI Copilot Chat panel */}
@@ -650,13 +559,13 @@ export default function ConversationalCopilotBuilder() {
           <div className="p-4 border-b border-slate-800/80 bg-slate-950/50 flex items-center justify-between">
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
-              Diretor de UI/UX Ativo
+              AI Designer Conversacional
             </span>
             <button 
-              onClick={handleGenerateOtherIdea}
+              onClick={handleSurpriseMe}
               className="text-[10px] font-bold text-brand-gold hover:text-white bg-brand-gold/15 hover:bg-brand-gold/25 px-2.5 py-1.5 rounded-md transition-all flex items-center gap-1.5 border border-brand-gold/25"
             >
-              <Shuffle className="w-3.5 h-3.5" /> ✨ Outra Ideia
+              ✨ Surpreende-me
             </button>
           </div>
 
@@ -670,20 +579,6 @@ export default function ConversationalCopilotBuilder() {
                     : "bg-slate-900 border border-slate-800 text-slate-250 rounded-tl-none space-y-3"
                 }`}>
                   <p className="whitespace-pre-line">{msg.text}</p>
-                  
-                  {msg.suggestions && msg.suggestions.length > 0 && (
-                    <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-850">
-                      {msg.suggestions.map((sug, sIdx) => (
-                        <button
-                          key={sIdx}
-                          onClick={() => handleSend(sug)}
-                          className="w-full text-left text-[10px] font-bold text-brand-gold hover:text-white bg-slate-950/80 hover:bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2.5 transition-colors"
-                        >
-                          ➔ {sug}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -693,7 +588,7 @@ export default function ConversationalCopilotBuilder() {
                 <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-350 space-y-2.5 rounded-tl-none w-[80%]">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping" />
-                    <span className="font-bold text-white">O Copilot está a projetar...</span>
+                    <span className="font-bold text-white">O Copilot está a redesenhar...</span>
                   </div>
                   {activeLogs.length > 0 && (
                     <div className="space-y-1 font-mono text-[10px] text-[#10b981] border-t border-slate-850 pt-2">
@@ -705,6 +600,7 @@ export default function ConversationalCopilotBuilder() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Bottom Chat input area */}
@@ -720,7 +616,7 @@ export default function ConversationalCopilotBuilder() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ex: 'Cria um design minimalista estilo Apple'"
+                placeholder="Peça qualquer alteração (Ex: 'Muda tudo para estilo Stripe')"
                 className="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold/30"
               />
               <button
@@ -737,7 +633,7 @@ export default function ConversationalCopilotBuilder() {
         {/* Right Column: Real-time Live Preview Browser */}
         <div className="hidden lg:flex flex-1 flex-col bg-slate-950/30 overflow-hidden relative">
           
-          {/* Browser Toolbar */}
+          {/* Browser Address bar */}
           <div className="h-12 border-b border-slate-800/80 px-6 flex items-center justify-between bg-slate-950/80">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-slate-800" />
@@ -771,7 +667,7 @@ export default function ConversationalCopilotBuilder() {
             </div>
           </div>
 
-          {/* Browser Area */}
+          {/* Preview Screen */}
           <div className="flex-1 overflow-hidden p-6 flex justify-center items-start bg-slate-900/10">
             <div className={`h-full border border-slate-800 bg-black/40 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ${
               previewMode === "desktop" ? "w-full" : previewMode === "tablet" ? "w-[680px]" : "w-[360px]"
@@ -780,275 +676,306 @@ export default function ConversationalCopilotBuilder() {
               {/* Dynamic Live website page */}
               <div className={`h-full overflow-y-auto relative transition-all duration-500 ${previewTheme.bg} ${
                 isLight ? "text-slate-850" : "text-slate-350"
-              } ${getFontFamilyClass()}`}>
-                
-                {/* DYNAMIC HEADER VARIANT */}
-                {headerVariant === "center" ? (
-                  <div className={`flex flex-col items-center justify-center p-6 gap-3 border-b ${
-                    isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"
-                  }`}>
-                    <div className={`font-bold text-xl flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
-                      <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
-                      {brandName}
+              } ${getFontFamilyClass()} flex`}>
+
+                {/* NOTION SIDEBAR VARIANT */}
+                {brandStyle === "notion" && previewMode === "desktop" && (
+                  <div className="w-52 h-full bg-[#f7f7f5] border-r border-slate-200/80 p-4 space-y-4 text-xs text-slate-500 font-semibold select-none flex-shrink-0">
+                    <div className="text-slate-800 font-bold flex items-center gap-1.5">
+                      <span>📝</span> {brandName}
                     </div>
-                    <div className="flex items-center gap-6 text-[10px] uppercase tracking-wider font-semibold select-none">
-                      <span className="hover:text-white cursor-pointer transition-colors">Início</span>
-                      {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
-                      {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
-                      {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
-                    </div>
-                  </div>
-                ) : headerVariant === "split" ? (
-                  <div className={`flex items-center justify-between p-6 border-b ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
-                    <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
-                      {brandName}
-                    </div>
-                    <div className="flex items-center gap-6 text-xs font-semibold select-none">
-                      <span className="hover:text-white cursor-pointer transition-colors">Início</span>
-                      {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
-                    </div>
-                    <button className={`px-4 py-2 text-[10px] font-bold ${getBorderRadiusClass()} ${previewTheme.btnAccent}`}>
-                      Aceder App ➔
-                    </button>
-                  </div>
-                ) : (
-                  <div className={`flex items-center justify-between p-6 border-b ${
-                    headerVariant === "sticky" ? "sticky top-0 z-45 backdrop-blur-md" : ""
-                  } ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
-                    <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
-                      <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
-                      {brandName}
-                    </div>
-                    <div className="flex items-center gap-6 text-xs font-semibold select-none">
-                      <span className="hover:text-white cursor-pointer transition-colors">Início</span>
-                      {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
-                      {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
-                      {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
+                    <div className="space-y-1.5 pt-2">
+                      <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">🏠 Página Inicial</div>
+                      {features.includes("servicos") && <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">⚙️ Serviços</div>}
+                      {features.includes("galeria") && <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">🖼️ Galeria</div>}
+                      {features.includes("faq") && <div className="text-slate-700 hover:bg-slate-200/50 p-1.5 rounded cursor-pointer">❓ Perguntas</div>}
                     </div>
                   </div>
                 )}
 
-                {/* DYNAMIC HERO VARIANT */}
-                {heroVariant === "minimalist" ? (
-                  <div className="py-28 px-8 text-center space-y-4 max-w-xl mx-auto">
-                    <h1 className={`text-3.5xl font-light tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                      {previewContent.heroTitle}
-                    </h1>
-                    <p className="text-[11px] text-slate-500 leading-relaxed max-w-sm mx-auto">
-                      {previewContent.heroSubtitle}
-                    </p>
-                    <div className="pt-4">
-                      <button className="text-xs font-semibold hover:underline flex items-center gap-1 mx-auto text-brand-gold">
-                        Explorar portfólio <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ) : heroVariant === "saas" ? (
-                  <div className="py-20 px-8 text-center space-y-6 max-w-4xl mx-auto">
-                    <h1 className={`text-4xl font-extrabold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                      {previewContent.heroTitle}
-                    </h1>
-                    <p className="text-xs leading-relaxed max-w-md mx-auto">
-                      {previewContent.heroSubtitle}
-                    </p>
-                    <div className="flex justify-center gap-3">
-                      <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
-                        Experimentar Grátis
-                      </button>
-                    </div>
-                    {/* Mockup Dashboard Preview */}
-                    <div className={`mt-8 w-full max-w-2xl h-44 rounded-xl border border-slate-800 bg-[#070b16] p-3 shadow-2xl flex flex-col justify-start mx-auto`}>
-                      <div className="flex items-center gap-1.5 border-b border-slate-850 pb-2">
-                        <span className="w-2 h-2 rounded-full bg-rose-500" />
-                        <span className="w-2 h-2 rounded-full bg-amber-500" />
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                {/* MAIN PAGE CONTAINER */}
+                <div className="flex-1 flex flex-col justify-between min-h-full">
+                  
+                  <div>
+                    {/* DYNAMIC HEADER VARIANT */}
+                    {brandStyle === "vercel" ? (
+                      <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black select-none">
+                        <div className="font-mono text-white font-extrabold flex items-center gap-2">
+                          <span className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-white" />
+                          {brandName.toUpperCase()}
+                        </div>
+                        <div className="flex items-center gap-6 text-xs text-slate-400 font-semibold">
+                          <span className="hover:text-white cursor-pointer transition-colors">INÍCIO</span>
+                          {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">SERVIÇOS</span>}
+                        </div>
                       </div>
-                      <div className="flex-1 flex items-center justify-center text-[10px] text-slate-650 italic">
-                        Visualização do Painel Administrativo SaaS
+                    ) : brandStyle === "notion" ? (
+                      /* Minimal Notion Header (e.g. mobile representation) */
+                      previewMode !== "desktop" ? (
+                        <div className="flex items-center justify-between p-4 border-b border-slate-200/60 bg-[#FBFBFA]">
+                          <span className="font-bold text-slate-800">📝 {brandName}</span>
+                          <span className="text-xs text-slate-500 font-bold">Menu ➔</span>
+                        </div>
+                      ) : null
+                    ) : brandStyle === "stripe" ? (
+                      /* Slanted gradient background header for Stripe */
+                      <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 text-white p-6 pb-20 select-none">
+                        <div className="flex items-center justify-between max-w-4xl mx-auto">
+                          <div className="font-extrabold text-lg tracking-tight">{brandName}</div>
+                          <div className="flex items-center gap-6 text-xs font-semibold">
+                            <span className="hover:opacity-80 cursor-pointer">Início</span>
+                            {features.includes("servicos") && <span className="hover:opacity-80 cursor-pointer">Serviços</span>}
+                          </div>
+                          <button className="bg-white/10 hover:bg-white/20 border border-white/20 px-3.5 py-1.5 rounded-full text-[10px] font-bold">
+                            Começar ➔
+                          </button>
+                        </div>
+                        {/* Slant shape */}
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-[#0f172a] transform skew-y-1 origin-bottom-left" />
                       </div>
-                    </div>
-                  </div>
-                ) : heroVariant === "restaurant" ? (
-                  <div className="py-20 px-8 text-left space-y-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <div className="space-y-6">
-                      <h1 className={`text-3xl sm:text-4xl font-serif font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                        {previewContent.heroTitle}
-                      </h1>
-                      <p className="text-xs leading-relaxed text-slate-400">
-                        {previewContent.heroSubtitle}
-                      </p>
-                      <button className={`px-6 py-3 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
-                        Reservar Mesa
-                      </button>
-                    </div>
-                    <div className={`aspect-square rounded-2xl flex items-center justify-center border text-[11px] font-semibold italic ${previewTheme.card} ${getShadowClass()}`}>
-                      Foto do Prato
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
-                    <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
-                      isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
-                    }`}>
-                      <Sparkles className="w-3 h-3 text-brand-gold" />
-                      {category}
-                    </div>
-                    <h1 className={`text-3xl font-display font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                      {previewContent.heroTitle}
-                    </h1>
-                    <p className="text-xs leading-relaxed max-w-md mx-auto">
-                      {previewContent.heroSubtitle}
-                    </p>
-                    <div className="flex items-center justify-center gap-3">
-                      <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
-                        Nossos Serviços
-                      </button>
-                      <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border ${previewTheme.btnOutline}`}>
-                        Fale Connosco
-                      </button>
-                    </div>
-                  </div>
-                )}
+                    ) : (
+                      /* Classic Header */
+                      <div className={`flex items-center justify-between p-6 border-b ${isLight ? "border-slate-200/60 bg-white/70" : "border-white/5 bg-[#030712]/30"}`}>
+                        <div className={`font-bold text-lg flex items-center gap-1.5 font-display select-none ${isLight ? "text-slate-900" : "text-white"}`}>
+                          <span className="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse" />
+                          {brandName}
+                        </div>
+                        <div className="flex items-center gap-6 text-xs font-semibold select-none">
+                          <span className="hover:text-white cursor-pointer transition-colors">Início</span>
+                          {features.includes("servicos") && <span className="hover:text-white cursor-pointer transition-colors">Serviços</span>}
+                          {features.includes("galeria") && <span className="hover:text-white cursor-pointer transition-colors">Galeria</span>}
+                          {features.includes("depoimentos") && <span className="hover:text-white cursor-pointer transition-colors">Clientes</span>}
+                        </div>
+                      </div>
+                    )}
 
-                {/* SERVICES SECTION */}
-                {features.includes("servicos") && (
-                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-4xl mx-auto`}>
-                    <div className="text-center space-y-1.5">
-                      <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Nossos Serviços</h3>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soluções feitas para si</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {previewContent.services.map((srv, idx) => (
-                        <div 
-                          key={idx} 
-                          className={`p-5 flex flex-col justify-between h-[150px] transition-all ${getBorderRadiusClass()} ${
-                            cardVariant === "minimal" ? "border-slate-800 bg-transparent text-left" :
-                            cardVariant === "elevated" ? "bg-slate-900 border border-slate-800 shadow-md hover:scale-[1.02]" :
-                            previewTheme.card
-                          } ${getShadowClass()}`}
-                        >
-                          <div className="space-y-1.5">
-                            <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"}`}>{srv.name}</h4>
-                            <p className="text-[10px] text-slate-450 leading-relaxed">{srv.desc}</p>
+                    {/* DYNAMIC HERO VARIANT */}
+                    {brandStyle === "notion" ? (
+                      <div className="py-12 px-10 text-left space-y-6 max-w-2xl">
+                        <div className="text-4xl">📝</div>
+                        <h1 className="text-3.5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                          {previewContent.heroTitle}
+                        </h1>
+                        <p className="text-xs text-slate-500 leading-relaxed max-w-lg">
+                          {previewContent.heroSubtitle}
+                        </p>
+                        <div className="pt-2">
+                          <button className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold shadow-sm">
+                            Adicionar Nota / Começar
+                          </button>
+                        </div>
+                      </div>
+                    ) : brandStyle === "linear" ? (
+                      <div className="py-20 px-8 text-center space-y-6 max-w-3xl mx-auto">
+                        <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-[9px] font-mono border border-slate-800 bg-[#12131a] text-purple-400">
+                          <span>⚙️</span> Linear Style Preview
+                        </div>
+                        <h1 className="text-4xl font-extrabold tracking-tight text-white uppercase font-mono">
+                          {previewContent.heroTitle}
+                        </h1>
+                        <p className="text-xs text-slate-400 font-mono leading-relaxed max-w-md mx-auto">
+                          {previewContent.heroSubtitle}
+                        </p>
+                        <div className="flex items-center justify-center gap-3 pt-2">
+                          <button className="px-4 py-2.5 rounded bg-[#5c6bc0] hover:bg-[#3f51b5] text-white border border-[#7986cb] text-xs font-bold font-mono">
+                            Ver Projeto ➔
+                          </button>
+                          <button className="px-4 py-2.5 rounded border border-slate-850 hover:bg-slate-900 text-white text-xs font-mono">
+                            Keymap
+                          </button>
+                        </div>
+                      </div>
+                    ) : brandStyle === "vercel" ? (
+                      <div className="py-24 px-8 text-center space-y-8 max-w-3xl mx-auto bg-black">
+                        <h1 className="text-5xl font-extrabold tracking-tighter text-white uppercase select-none">
+                          {previewContent.heroTitle}
+                        </h1>
+                        <p className="text-xs text-slate-450 leading-relaxed font-mono max-w-md mx-auto">
+                          {previewContent.heroSubtitle}
+                        </p>
+                        <div className="flex items-center justify-center gap-4">
+                          <button className="px-6 py-3 bg-white hover:bg-slate-100 text-black text-xs font-bold uppercase">
+                            Deploy Now
+                          </button>
+                          <button className="px-6 py-3 border border-white/20 hover:bg-white/5 text-white text-xs font-bold uppercase">
+                            Read Docs
+                          </button>
+                        </div>
+                      </div>
+                    ) : brandStyle === "stripe" ? (
+                      /* Stripe Hero */
+                      <div className="py-16 px-8 text-left space-y-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div className="space-y-6">
+                          <h1 className="text-3.5xl font-extrabold leading-tight text-white tracking-tight">
+                            {previewContent.heroTitle}
+                          </h1>
+                          <p className="text-xs leading-relaxed text-slate-350">
+                            {previewContent.heroSubtitle}
+                          </p>
+                          <button className="px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:shadow-lg text-white font-bold text-xs flex items-center gap-1">
+                            Começar agora <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        {/* Mock Dashboard graph widget for Stripe style */}
+                        <div className="w-full h-48 bg-[#1e293b]/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span className="text-[10px] text-slate-400 font-bold">Receitas / Vendas</span>
+                            <span className="text-[9px] text-[#10b981] font-bold">+24%</span>
                           </div>
-                          <span className={`text-[10px] font-bold ${previewTheme.textAccent}`}>➔ Saber mais</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* GALLERY SECTION */}
-                {features.includes("galeria") && (
-                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-4xl mx-auto`}>
-                    <div className="text-center space-y-1.5">
-                      <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Portfólio / Galeria</h3>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">Nosso trabalho recente</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className={`aspect-video flex items-center justify-center text-[10px] border ${getBorderRadiusClass()} ${previewTheme.card} ${getShadowClass()}`}>
-                          Imagem {i}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* TESTIMONIALS SECTION */}
-                {features.includes("depoimentos") && (
-                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-3xl mx-auto`}>
-                    <div className="text-center space-y-1.5">
-                      <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Depoimentos</h3>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">O que dizem os clientes</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { name: "Maria Silva", text: "Excelente atendimento e dedicação total." },
-                        { name: "João Santos", text: "O website ficou excelente e super rápido!" }
-                      ].map((dep, idx) => (
-                        <div key={idx} className={`p-4 border space-y-2.5 ${getBorderRadiusClass()} ${previewTheme.card} ${getShadowClass()}`}>
-                          <div className="flex text-amber-400 gap-0.5">
-                            {[...Array(5)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-amber-400" />)}
+                          <div className="h-24 flex items-end justify-between gap-1 pt-4">
+                            {[40, 60, 45, 90, 80, 100].map((h, i) => (
+                              <div key={i} className="bg-indigo-500 rounded-t w-full" style={{ height: `${h}%` }} />
+                            ))}
                           </div>
-                          <p className="text-[10px] text-slate-400 italic">"{dep.text}"</p>
-                          <span className={`text-[10px] font-bold block ${isLight ? "text-slate-900" : "text-white"}`}>{dep.name}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* FAQ SECTION */}
-                {features.includes("faq") && (
-                  <div className={`${getSpacingClass()} px-8 border-t border-white/5 max-w-3xl mx-auto`}>
-                    <h2 className="text-xl font-bold text-white text-center mb-6">Perguntas Frequentes</h2>
-                    <div className="space-y-3">
-                      {[
-                        { q: "Quais são os vossos prazos de entrega?", a: "Dependendo da dimensão do projeto, tipicamente realizamos a entrega final num prazo de 3 a 7 dias úteis." },
-                        { q: "Posso solicitar alterações após a publicação?", a: "Sim, suportamos facilidade de alteração e modificações continuas a qualquer momento." }
-                      ].map((faq, fi) => (
-                        <div key={fi} className={`p-4 border ${getBorderRadiusClass()} ${previewTheme.card} ${getShadowClass()}`}>
-                          <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"} mb-1.5`}>{faq.q}</h4>
-                          <p className="text-[10px] text-slate-450 leading-relaxed">{faq.a}</p>
+                      </div>
+                    ) : (
+                      /* Default Hero */
+                      <div className="py-20 px-8 text-center space-y-6 max-w-2xl mx-auto">
+                        <div className={`inline-flex items-center gap-1 py-1 px-3 rounded-full text-[10px] font-bold ${
+                          isLight ? "bg-slate-200/80 text-slate-800" : "bg-white/5 border border-white/10 text-white"
+                        }`}>
+                          <Sparkles className="w-3 h-3 text-brand-gold" />
+                          {category}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                        <h1 className={`text-3xl font-display font-extrabold leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                          {previewContent.heroTitle}
+                        </h1>
+                        <p className="text-xs leading-relaxed max-w-md mx-auto">
+                          {previewContent.heroSubtitle}
+                        </p>
+                        <div className="flex items-center justify-center gap-3">
+                          <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold ${previewTheme.btnAccent}`}>
+                            Nossos Serviços
+                          </button>
+                          <button className={`px-5 py-2.5 ${getBorderRadiusClass()} text-xs font-bold border ${previewTheme.btnOutline}`}>
+                            Fale Connosco
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
-                {/* CONTACT SECTION */}
-                {features.includes("contactos") && (
-                  <div className="py-16 px-8 border-t border-white/5 max-w-md mx-auto space-y-6">
-                    <h2 className={`text-xl font-bold text-center ${isLight ? "text-slate-900" : "text-white"}`}>Contacte-nos</h2>
-                    <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                      <input
-                        type="text"
-                        placeholder="Nome"
-                        className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()} ${
-                          isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
-                        }`}
-                      />
-                      <textarea
-                        rows={3}
-                        placeholder="Mensagem..."
-                        className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none resize-none ${getBorderRadiusClass()} ${
-                          isLight ? "border-slate-300 text-slate-800" : "border-white/10 text-white"
-                        }`}
-                      />
-                      <button className={`w-full py-2.5 text-xs font-bold ${getBorderRadiusClass()} ${previewTheme.btnAccent}`}>
-                        Enviar Mensagem
-                      </button>
-                    </form>
-                  </div>
-                )}
+                    {/* SERVICES SECTION */}
+                    {features.includes("servicos") && (
+                      <div className={`${getSpacingClass()} px-8 border-t ${
+                        isLight ? "border-slate-200/60" : "border-white/5"
+                      } max-w-4xl mx-auto`}>
+                        <div className="text-center space-y-1.5">
+                          <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Nossos Serviços</h3>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider">Soluções feitas para si</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {previewContent.services.map((srv, idx) => (
+                            <div 
+                              key={idx} 
+                              className={`p-5 flex flex-col justify-between h-[150px] transition-all ${getBorderRadiusClass()} ${
+                                brandStyle === "notion" ? "bg-transparent border border-slate-200/80 shadow-none" :
+                                brandStyle === "linear" ? "bg-[#12131a] border border-slate-800/85 font-mono shadow-none" :
+                                brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none shadow-none" :
+                                previewTheme.card
+                              } ${getShadowClass()}`}
+                            >
+                              <div className="space-y-1.5">
+                                <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"}`}>{srv.name}</h4>
+                                <p className="text-[10px] text-slate-450 leading-relaxed">{srv.desc}</p>
+                              </div>
+                              <span className={`text-[10px] font-bold ${previewTheme.textAccent}`}>➔ Saber mais</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* WhatsApp Widget Render */}
-                {features.includes("whatsapp") && (
-                  <div className="absolute bottom-6 right-6 z-25 flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl cursor-pointer hover:scale-105 transition-all">
-                    <MessageSquare className="w-6 h-6 fill-white" />
-                  </div>
-                )}
+                    {/* GALLERY SECTION */}
+                    {features.includes("galeria") && (
+                      <div className={`${getSpacingClass()} px-8 border-t ${
+                        isLight ? "border-slate-200/60" : "border-white/5"
+                      } max-w-4xl mx-auto`}>
+                        <div className="text-center space-y-1.5">
+                          <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Portfólio / Galeria</h3>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider">Nosso trabalho recente</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          {[1, 2, 3].map(i => (
+                            <div key={i} className={`aspect-video flex items-center justify-center text-[10px] border ${getBorderRadiusClass()} ${
+                              brandStyle === "notion" ? "bg-transparent border border-slate-200" :
+                              brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none" :
+                              previewTheme.card
+                            } ${getShadowClass()}`}>
+                              Imagem {i}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* Footer dynamic variants */}
-                {footerVariant === "newsletter" ? (
-                  <div className={`p-8 border-t space-y-4 text-center ${isLight ? "border-slate-200/60 bg-slate-100" : "border-white/5 bg-slate-950"}`}>
-                    <span className="text-[10px] uppercase font-bold text-brand-gold">Subscreva a nossa newsletter</span>
-                    <div className="flex max-w-xs mx-auto gap-1">
-                      <input type="email" placeholder="O seu email" className="bg-black/20 border border-white/10 rounded-lg p-2 text-[10px] flex-1 focus:outline-none" />
-                      <button className={`px-3 text-[10px] font-bold rounded-lg ${previewTheme.btnAccent}`}>Ok</button>
-                    </div>
-                    <div className="text-[9px] text-slate-500">
-                      &copy; {new Date().getFullYear()} {brandName}. MD Sites AI Designer.
-                    </div>
+                    {/* FAQ SECTION */}
+                    {features.includes("faq") && (
+                      <div className={`${getSpacingClass()} px-8 border-t ${
+                        isLight ? "border-slate-200/60" : "border-white/5"
+                      } max-w-3xl mx-auto`}>
+                        <h2 className={`text-xl font-bold text-center mb-6 ${isLight ? "text-slate-900" : "text-white"}`}>Perguntas Frequentes</h2>
+                        <div className="space-y-3">
+                          {[
+                            { q: "Quais são os vossos prazos de entrega?", a: "Dependendo da dimensão do projeto, tipicamente realizamos a entrega final num prazo de 3 a 7 dias úteis." },
+                            { q: "Posso solicitar alterações após a publicação?", a: "Sim, suportamos facilidade de alteração e modificações continuas a qualquer momento." }
+                          ].map((faq, fi) => (
+                            <div key={fi} className={`p-4 border ${getBorderRadiusClass()} ${
+                              brandStyle === "notion" ? "bg-transparent border border-slate-200" :
+                              brandStyle === "vercel" ? "bg-black border border-white/10 rounded-none" :
+                              previewTheme.card
+                            } ${getShadowClass()}`}>
+                              <h4 className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"} mb-1.5`}>{faq.q}</h4>
+                              <p className="text-[10px] text-slate-455 leading-relaxed">{faq.a}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CONTACT SECTION */}
+                    {features.includes("contactos") && (
+                      <div className="py-16 px-8 border-t border-white/5 max-w-md mx-auto space-y-6">
+                        <h2 className={`text-xl font-bold text-center ${isLight ? "text-slate-900" : "text-white"}`}>Contacte-nos</h2>
+                        <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+                          <input
+                            type="text"
+                            placeholder="Nome"
+                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none ${getBorderRadiusClass()} ${
+                              isLight ? "border-slate-350 text-slate-800" : "border-white/10 text-white"
+                            }`}
+                          />
+                          <textarea
+                            rows={3}
+                            placeholder="Mensagem..."
+                            className={`w-full bg-black/10 border p-2.5 text-xs focus:outline-none resize-none ${getBorderRadiusClass()} ${
+                              isLight ? "border-slate-350 text-slate-800" : "border-white/10 text-white"
+                            }`}
+                          />
+                          <button className={`w-full py-2.5 text-xs font-bold ${getBorderRadiusClass()} ${previewTheme.btnAccent}`}>
+                            Enviar Mensagem
+                          </button>
+                        </form>
+                      </div>
+                    )}
+
                   </div>
-                ) : (
+
+                  {/* WhatsApp Widget Render */}
+                  {features.includes("whatsapp") && (
+                    <div className="absolute bottom-6 right-6 z-25 flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl cursor-pointer hover:scale-105 transition-all">
+                      <MessageSquare className="w-6 h-6 fill-white" />
+                    </div>
+                  )}
+
+                  {/* Footer */}
                   <div className={`p-8 border-t text-center text-[10px] text-slate-500 select-none ${
                     isLight ? "border-slate-200/60" : "border-white/5"
                   }`} suppressHydrationWarning>
                     &copy; {new Date().getFullYear()} {brandName}. Desenvolvido com IA da MD Sites.
                   </div>
-                )}
+
+                </div>
 
               </div>
 
