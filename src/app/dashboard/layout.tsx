@@ -45,14 +45,14 @@ export default function DashboardLayout({
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex flex-col w-64 bg-[#0d1527]/60 border-r border-slate-800/80 p-6 space-y-6 flex-shrink-0">
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-6">
-          <Link href="/">
+        <div className="relative w-full h-16 mb-6 flex items-center justify-start">
+          <Link href="/" className="relative w-52 h-full flex items-center justify-start">
             <Image
               src="/logonovo.png"
               alt="MD Sites Logo"
-              width={130}
-              height={38}
-              className="h-8 w-auto object-contain cursor-pointer"
+              fill
+              className="object-contain scale-[2.2] transform origin-left cursor-pointer"
+              priority
             />
           </Link>
         </div>
@@ -113,14 +113,18 @@ export default function DashboardLayout({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <Image
-                    src="/logonovo.png"
-                    alt="MD Sites Logo"
-                    width={110}
-                    height={32}
-                    className="h-7 w-auto object-contain"
-                  />
+                <div className="flex items-center justify-between animate-none">
+                  <div className="relative w-44 h-10 overflow-hidden flex items-center justify-start">
+                    <Link href="/" className="relative w-full h-full flex items-center justify-start">
+                      <Image
+                        src="/logonovo.png"
+                        alt="MD Sites Logo"
+                        fill
+                        className="object-contain scale-[2.2] transform origin-left cursor-pointer"
+                        priority
+                      />
+                    </Link>
+                  </div>
                   <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-white">
                     <X className="w-6 h-6" />
                   </button>
