@@ -35,25 +35,49 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   // Fetch websites from Supabase
-  useEffect(() => {
-    const fetchWebsites = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("websites")
-          .select("*")
-          .order("created_at", { ascending: false });
+  const fetchWebsites = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("websites")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-        if (!error && data) {
-          setWebsites(data as Website[]);
+      if (!error && data) {
+        setWebsites(data as Website[]);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar websites no dashboard:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWebsites();
+  }, []);
+
+  const handleDeleteAll = async () => {
+    if (confirm("ATENÇÃO: Tem a certeza que deseja eliminar TODOS os websites permanentemente? Esta ação é irreversível e não pode ser desfeita.")) {
+      setLoading(true);
+      try {
+        const { error } = await supabase
+          .from("websites")
+          .delete()
+          .neq("id", "0");
+        
+        if (!error) {
+          setWebsites([]);
+          alert("Todos os websites foram eliminados.");
+        } else {
+          alert("Erro ao apagar websites: " + error.message);
         }
       } catch (err) {
-        console.error("Erro ao carregar websites no dashboard:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    };
-    fetchWebsites();
-  }, []);
+    }
+  };
 
   const stats = [
     { name: "Websites Ativos", value: loading ? "..." : websites.length.toString(), icon: Globe, change: "+1 este mês" },
@@ -110,7 +134,17 @@ export default function DashboardPage() {
 
       {/* Website Table / Grid List */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white">Os meus Websites</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">Os meus Websites</h2>
+          {websites.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+            >
+              Apagar Todos os Sites
+            </button>
+          )}
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">

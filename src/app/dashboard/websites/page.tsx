@@ -63,12 +63,45 @@ export default function WebsitesPage() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (confirm("ATENÇÃO: Tem a certeza que deseja eliminar TODOS os websites permanentemente? Esta ação é irreversível.")) {
+      setLoading(true);
+      try {
+        const { error } = await supabase
+          .from("websites")
+          .delete()
+          .neq("id", "0");
+        
+        if (!error) {
+          setWebsites([]);
+          alert("Todos os websites foram eliminados.");
+        } else {
+          alert("Erro ao apagar: " + error.message);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Os meus Websites</h1>
-          <p className="text-xs text-slate-400">Gere e edita todos os websites criados com IA.</p>
+        <div className="flex items-center gap-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Os meus Websites</h1>
+            <p className="text-xs text-slate-400">Gere e edita todos os websites criados com IA.</p>
+          </div>
+          {websites.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 text-xs font-bold rounded-xl transition-all"
+            >
+              Apagar Todos os Sites
+            </button>
+          )}
         </div>
         <Link
           href="/simular"
