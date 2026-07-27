@@ -72,42 +72,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#030712] flex items-center justify-center p-6 text-slate-100 overflow-hidden">
-      
-      {/* Background Graphic Effects */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-30 opacity-60 pointer-events-none"
-        style={{ backgroundImage: "url('/fundo-paginas.png')" }}
-      />
-      <div className="absolute inset-0 bg-[#030712] opacity-85 -z-20" />
+    <div 
+      className="relative w-full min-h-screen flex items-center justify-center p-6 text-slate-100 overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/fundo-paginas.png')" }}
+    >
+      {/* Background Overlay filter matching landing page */}
+      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] -z-10" />
 
       {/* Glow Halo decor */}
-      <div className="absolute w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] -top-60 -left-60 pointer-events-none" />
-      <div className="absolute w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[140px] -bottom-60 -right-60 pointer-events-none" />
+      <div className="absolute w-[600px] h-[600px] bg-blue-500/15 rounded-full blur-[140px] -top-60 -left-60 pointer-events-none" />
+      <div className="absolute w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[140px] -bottom-60 -right-60 pointer-events-none" />
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         
         {/* Branding Logo */}
         <div className="text-center space-y-3">
-          <Link href="/" className="relative w-64 h-16 overflow-hidden flex items-center justify-center mx-auto">
+          <Link href="/" className="relative w-80 h-24 overflow-hidden flex items-center justify-center mx-auto">
             <Image
               src="/logonovo.png"
               alt="MD Sites Logo"
               fill
-              className="object-contain scale-[2.2] transform origin-center"
+              className="object-contain scale-[3.2] transform origin-center"
               priority
             />
           </Link>
           <p className="text-xs text-slate-400">Acede ao painel geral para gerir e criar os teus websites com IA.</p>
         </div>
 
-        {/* Login Card Form */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl glass-morphism border border-slate-800/80 p-8 shadow-2xl relative overflow-hidden"
-          style={{ boxShadow: "0 0 50px -10px rgba(212,175,55,0.2), 0 0 80px -30px rgba(59,130,246,0.25)" }}
+        {/* Neon Gradient border wrapper */}
+        <div 
+          className="rounded-2xl p-[2px] relative"
+          style={{
+            background: "linear-gradient(225deg, #D4AF37 0%, #D4AF37 40%, #3b82f6 60%, #3b82f6 100%)",
+            boxShadow: "0 0 50px -10px rgba(59, 130, 246, 0.5), 0 0 50px -10px rgba(212, 175, 55, 0.4)"
+          }}
         >
+          {/* Login Card Form */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[14px] backdrop-blur-lg bg-slate-950/90 p-8 shadow-2xl relative overflow-hidden"
+          >
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-brand-gold" />
@@ -187,7 +192,8 @@ export default function LoginPage() {
               Aceder como Utilizador Demo
             </button>
           </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Link back or switch to register */}
         <div className="text-center text-xs text-slate-450">
