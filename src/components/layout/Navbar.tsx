@@ -74,14 +74,20 @@ export default function Navbar() {
             </div>
 
             {/* CTA Button - Desktop */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden md:flex items-center gap-5">
               <Link
-                href="/simular"
+                href="/login"
+                className="text-sm font-medium text-slate-300 hover:text-brand-gold transition-all"
+              >
+                Iniciar Sessão
+              </Link>
+              <Link
+                href="/register"
                 className="relative group overflow-hidden rounded-xl p-[1px] focus:outline-none"
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-brand-gold via-amber-300 to-brand-gold-dark rounded-xl" />
                 <span className="absolute inset-0 bg-gradient-to-r from-brand-gold via-amber-300 to-brand-gold-dark rounded-xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative px-6 py-2.5 transition-all ease-in duration-75 bg-[#030712] rounded-[11px] group-hover:bg-opacity-0">
+                <div className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#030712] rounded-[11px] group-hover:bg-opacity-0">
                   <span className="relative flex items-center gap-2 text-sm font-semibold text-white group-hover:text-brand-blue-dark">
                     Começar Grátis
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -126,9 +132,16 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col gap-2">
                 <Link
-                  href="/simular"
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-800 text-slate-300 font-bold hover:bg-white/5 transition-all duration-300"
+                >
+                  Iniciar Sessão
+                </Link>
+                <Link
+                  href="/register"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-blue-dark font-bold hover:shadow-lg hover:shadow-brand-gold/20 transition-all duration-300"
                 >
