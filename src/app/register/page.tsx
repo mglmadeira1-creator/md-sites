@@ -84,26 +84,26 @@ export default function RegisterPage() {
       
       {/* Background decoration */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20 opacity-30 pointer-events-none"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-30 opacity-60 pointer-events-none"
         style={{ backgroundImage: "url('/fundo-paginas.png')" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/95 via-[#030712]/90 to-[#030712] -z-10" />
+      <div className="absolute inset-0 bg-[#030712] opacity-85 -z-20" />
 
       {/* Halos */}
-      <div className="absolute w-[500px] h-[500px] bg-brand-blue/5 rounded-full blur-3xl -top-40 -left-40 pointer-events-none" />
-      <div className="absolute w-[500px] h-[500px] bg-brand-gold/5 rounded-full blur-3xl -bottom-40 -right-40 pointer-events-none" />
+      <div className="absolute w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] -top-60 -left-60 pointer-events-none" />
+      <div className="absolute w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[140px] -bottom-60 -right-60 pointer-events-none" />
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         
         {/* Branding Logo */}
         <div className="text-center space-y-3">
-          <Link href="/">
+          <Link href="/" className="relative w-64 h-16 overflow-hidden flex items-center justify-center mx-auto">
             <Image
               src="/logonovo.png"
               alt="MD Sites Logo"
-              width={160}
-              height={44}
-              className="h-10 w-auto object-contain mx-auto"
+              fill
+              className="object-contain scale-[2.2] transform origin-center"
+              priority
             />
           </Link>
           <p className="text-xs text-slate-400">Cria o teu perfil para começar a desenhar marcas e sites com IA.</p>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl glass-morphism border border-slate-800/80 p-8 shadow-2xl relative overflow-hidden"
-          style={{ boxShadow: "0 0 50px -15px rgba(212,175,55,0.1)" }}
+          style={{ boxShadow: "0 0 50px -10px rgba(212,175,55,0.2), 0 0 80px -30px rgba(59,130,246,0.25)" }}
         >
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
